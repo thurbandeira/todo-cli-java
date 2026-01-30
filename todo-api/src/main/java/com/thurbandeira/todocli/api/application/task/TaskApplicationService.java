@@ -1,12 +1,16 @@
 package com.thurbandeira.todocli.api.application.task;
 
+import com.thurbandeira.todocli.api.application.task.usecase.ClearCompletedUseCase;
+import com.thurbandeira.todocli.api.application.task.usecase.CompleteTaskUseCase;
+import com.thurbandeira.todocli.api.application.task.usecase.CreateTaskUseCase;
+import com.thurbandeira.todocli.api.application.task.usecase.ListTasksPagedUseCase;
+import com.thurbandeira.todocli.api.application.task.usecase.ListTasksUseCase;
+import com.thurbandeira.todocli.api.application.task.usecase.RemoveTaskUseCase;
+import com.thurbandeira.todocli.api.application.task.usecase.SearchTasksPagedUseCase;
+import com.thurbandeira.todocli.api.application.task.usecase.SearchTasksUseCase;
+import com.thurbandeira.todocli.api.application.task.usecase.SummaryTasksUseCase;
+import com.thurbandeira.todocli.api.application.task.usecase.UpdateTaskTitleUseCase;
 import com.thurbandeira.todocli.api.domain.TaskEntity;
-import com.thurbandeira.todocli.api.domain.UserAccount;
-import com.thurbandeira.todocli.api.exception.NotFoundException;
-import com.thurbandeira.todocli.api.exception.ValidationException;
-import com.thurbandeira.todocli.api.repository.TaskRepository;
-import com.thurbandeira.todocli.api.repository.UserRepository;
-import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,122 +20,96 @@ import java.util.List;
 @Service
 public class TaskApplicationService implements TaskUseCases {
 
-    private static final int MAX_TITLE = 200;
+    private final ListTasksUseCase listTasksUseCase;
+    private final ListTasksPagedUseCase listTasksPagedUseCase;
+    private final SearchTasksUseCase searchTasksUseCase;
+    private final SearchTasksPagedUseCase searchTasksPagedUseCase;
+    private final CreateTaskUseCase createTaskUseCase;
+    private final UpdateTaskTitleUseCase updateTaskTitleUseCase;
+    private final CompleteTaskUseCase completeTaskUseCase;
+    private final RemoveTaskUseCase removeTaskUseCase;
+    private final SummaryTasksUseCase summaryTasksUseCase;
+    private final ClearCompletedUseCase clearCompletedUseCase;
 
-    private final TaskRepository taskRepository;
-    private final UserRepository userRepository;
-
-    public TaskApplicationService(TaskRepository taskRepository, UserRepository userRepository) {
-        this.taskRepository = taskRepository;
-        this.userRepository = userRepository;
+    public TaskApplicationService(ListTasksUseCase listTasksUseCase,
+                                  ListTasksPagedUseCase listTasksPagedUseCase,
+                                  SearchTasksUseCase searchTasksUseCase,
+                                  SearchTasksPagedUseCase searchTasksPagedUseCase,
+                                  CreateTaskUseCase createTaskUseCase,
+                                  UpdateTaskTitleUseCase updateTaskTitleUseCase,
+                                  CompleteTaskUseCase completeTaskUseCase,
+                                  RemoveTaskUseCase removeTaskUseCase,
+                                  SummaryTasksUseCase summaryTasksUseCase,
+                                  ClearCompletedUseCase clearCompletedUseCase) {
+        this.listTasksUseCase = listTasksUseCase;
+        this.listTasksPagedUseCase = listTasksPagedUseCase;
+        this.searchTasksUseCase = searchTasksUseCase;
+        this.searchTasksPagedUseCase = searchTasksPagedUseCase;
+        this.createTaskUseCase = createTaskUseCase;
+        this.updateTaskTitleUseCase = updateTaskTitleUseCase;
+        this.completeTaskUseCase = completeTaskUseCase;
+        this.removeTaskUseCase = removeTaskUseCase;
+        this.summaryTasksUseCase = summaryTasksUseCase;
+        this.clearCompletedUseCase = clearCompletedUseCase;
     }
 
     @Override
     public List<TaskEntity> listAll(String username) {
-        UserAccount user = requireUser(username);
-        return taskRepository.findAllByOwnerOrderByCompletedAscIdAsc(user);
+        return listTasksUseCase.listAll(username);
     }
 
     @Override
     public List<TaskEntity> listByStatus(String username, boolean completed) {
-        UserAccount user = requireUser(username);
-        return taskRepository.findAllByOwnerAndCompletedOrderByIdAsc(user, completed);
+        return listTasksUseCase.listByStatus(username, completed);
     }
 
     @Override
     public List<TaskEntity> search(String username, String keyword) {
-        UserAccount user = requireUser(username);
-        return taskRepository.findAllByOwnerAndTitleContainingIgnoreCaseOrderByIdAsc(user, keyword);
+        return searchTasksUseCase.execute(username, keyword);
     }
 
     @Override
     public Page<TaskEntity> listAllPaged(String username, Pageable pageable) {
-        UserAccount user = requireUser(username);
-        return taskRepository.findAllByOwner(user, pageable);
+        return listTasksPagedUseCase.listAll(username, pageable);
     }
 
     @Override
     public Page<TaskEntity> listByStatusPaged(String username, boolean completed, Pageable pageable) {
-        UserAccount user = requireUser(username);
-        return taskRepository.findAllByOwnerAndCompleted(user, completed, pageable);
+        return listTasksPagedUseCase.listByStatus(username, completed, pageable);
     }
 
     @Override
     public Page<TaskEntity> searchPaged(String username, String keyword, Pageable pageable) {
-        UserAccount user = requireUser(username);
-        return taskRepository.findAllByOwnerAndTitleContainingIgnoreCase(user, keyword, pageable);
+        return searchTasksPagedUseCase.execute(username, keyword, pageable);
     }
 
     @Override
-    @Transactional
     public TaskEntity add(String username, String title) {
-        if (title == null || title.trim().isEmpty()) {
-            throw new ValidationException("Titulo invalido.");
-        }
-        if (title.trim().length() > MAX_TITLE) {
-            throw new ValidationException("Titulo deve ter no maximo 200 caracteres.");
-        }
-        UserAccount user = requireUser(username);
-        TaskEntity task = new TaskEntity(title.trim(), user);
-        return taskRepository.save(task);
+        return createTaskUseCase.execute(username, title);
     }
 
     @Override
-    @Transactional
     public TaskEntity update(String username, long id, String title) {
-        if (title == null || title.trim().isEmpty()) {
-            throw new ValidationException("Titulo invalido.");
-        }
-        if (title.trim().length() > MAX_TITLE) {
-            throw new ValidationException("Titulo deve ter no maximo 200 caracteres.");
-        }
-        UserAccount user = requireUser(username);
-        TaskEntity task = taskRepository.findByIdAndOwner(id, user)
-                .orElseThrow(() -> new NotFoundException("Tarefa nao encontrada."));
-        task.setTitle(title.trim());
-        return task;
+        return updateTaskTitleUseCase.execute(username, id, title);
     }
 
     @Override
-    @Transactional
     public TaskEntity complete(String username, long id) {
-        UserAccount user = requireUser(username);
-        TaskEntity task = taskRepository.findByIdAndOwner(id, user)
-                .orElseThrow(() -> new NotFoundException("Tarefa nao encontrada."));
-        task.markCompleted();
-        return task;
+        return completeTaskUseCase.execute(username, id);
     }
 
     @Override
-    @Transactional
     public void remove(String username, long id) {
-        UserAccount user = requireUser(username);
-        TaskEntity task = taskRepository.findByIdAndOwner(id, user)
-                .orElseThrow(() -> new NotFoundException("Tarefa nao encontrada."));
-        taskRepository.delete(task);
+        removeTaskUseCase.execute(username, id);
     }
 
     @Override
-    @Transactional
     public Summary summary(String username) {
-        UserAccount user = requireUser(username);
-        long total = taskRepository.countByOwner(user);
-        long done = taskRepository.countByOwnerAndCompleted(user, true);
-        long pending = total - done;
-        return new Summary((int) total, (int) pending, (int) done);
+        return summaryTasksUseCase.execute(username);
     }
 
     @Override
-    @Transactional
     public Summary clearCompleted(String username) {
-        UserAccount user = requireUser(username);
-        taskRepository.deleteByOwnerAndCompleted(user, true);
-        return summary(username);
+        return clearCompletedUseCase.execute(username);
     }
-
-    private UserAccount requireUser(String username) {
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("Usuario nao encontrado."));
-    }
-
 }

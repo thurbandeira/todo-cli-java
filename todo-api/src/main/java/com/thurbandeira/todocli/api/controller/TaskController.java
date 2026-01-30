@@ -5,6 +5,7 @@ import com.thurbandeira.todocli.api.dto.SummaryResponse;
 import com.thurbandeira.todocli.api.dto.TaskRequest;
 import com.thurbandeira.todocli.api.dto.TaskResponse;
 import com.thurbandeira.todocli.api.dto.TaskUpdateRequest;
+import com.thurbandeira.todocli.api.mapper.TaskMapper;
 import com.thurbandeira.todocli.api.application.task.TaskUseCases;
 import com.thurbandeira.todocli.api.domain.TaskEntity;
 import jakarta.validation.Valid;
@@ -29,15 +30,17 @@ import java.util.List;
 public class TaskController {
 
     private final TaskUseCases service;
+    private final TaskMapper mapper;
 
-    public TaskController(TaskUseCases service) {
+    public TaskController(TaskUseCases service, TaskMapper mapper) {
         this.service = service;
+        this.mapper = mapper;
     }
 
     @GetMapping
     public List<TaskResponse> list(@AuthenticationPrincipal UserDetails user,
                                    @RequestParam(name = "status", defaultValue = "all") String status) {
-        return mapTasks(listPaged(user, status, 0, 1000, "completed,asc;id,asc").getContent());
+        return mapper.toResponseList(listPaged(user, status, 0, 1000, "completed,asc;id,asc").getContent());
     }
 
     @GetMapping("/page")
@@ -47,7 +50,7 @@ public class TaskController {
                                                @RequestParam(name = "size", defaultValue = "20") int size,
                                                @RequestParam(name = "sort", defaultValue = "completed,asc;id,asc") String sort) {
         Page<TaskEntity> result = listPaged(user, status, page, size, sort);
-        return toPageResponse(result.map(this::mapTask));
+        return mapper.toPageResponse(result);
     }
 
     @GetMapping("/summary")
@@ -59,7 +62,7 @@ public class TaskController {
     @GetMapping("/search")
     public List<TaskResponse> search(@AuthenticationPrincipal UserDetails user,
                                      @RequestParam(name = "keyword") @NotBlank(message = "Keyword obrigatoria.") String keyword) {
-        return mapTasks(searchPaged(user, keyword, 0, 1000, "id,asc").getContent());
+        return mapper.toResponseList(searchPaged(user, keyword, 0, 1000, "id,asc").getContent());
     }
 
     @GetMapping("/search/page")
@@ -69,14 +72,14 @@ public class TaskController {
                                                  @RequestParam(name = "size", defaultValue = "20") int size,
                                                  @RequestParam(name = "sort", defaultValue = "id,asc") String sort) {
         Page<TaskEntity> result = searchPaged(user, keyword, page, size, sort);
-        return toPageResponse(result.map(this::mapTask));
+        return mapper.toPageResponse(result);
     }
 
     @PostMapping
     public ResponseEntity<TaskResponse> create(@AuthenticationPrincipal UserDetails user,
                                                @Valid @RequestBody TaskRequest request) {
         TaskEntity task = service.add(user.getUsername(), request.title());
-        return ResponseEntity.status(HttpStatus.CREATED).body(mapTask(task));
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toResponse(task));
     }
 
     @PutMapping("/{id}")
@@ -84,14 +87,14 @@ public class TaskController {
                                @PathVariable long id,
                                @Valid @RequestBody TaskUpdateRequest request) {
         TaskEntity updated = service.update(user.getUsername(), id, request.title());
-        return mapTask(updated);
+        return mapper.toResponse(updated);
     }
 
     @PostMapping("/{id}/complete")
     public TaskResponse complete(@AuthenticationPrincipal UserDetails user,
                                  @PathVariable long id) {
         TaskEntity updated = service.complete(user.getUsername(), id);
-        return mapTask(updated);
+        return mapper.toResponse(updated);
     }
 
     @DeleteMapping("/{id}")
@@ -105,14 +108,6 @@ public class TaskController {
     public SummaryResponse clearCompleted(@AuthenticationPrincipal UserDetails user) {
         TaskUseCases.Summary summary = service.clearCompleted(user.getUsername());
         return new SummaryResponse(summary.total(), summary.pending(), summary.done());
-    }
-
-    private List<TaskResponse> mapTasks(List<TaskEntity> tasks) {
-        return tasks.stream().map(this::mapTask).toList();
-    }
-
-    private TaskResponse mapTask(TaskEntity task) {
-        return new TaskResponse(task.getId(), task.getTitle(), task.isCompleted());
     }
 
     private String normalizeStatus(String status) {
@@ -153,14 +148,4 @@ public class TaskController {
         return result;
     }
 
-    private <T> PageResponse<T> toPageResponse(Page<T> page) {
-        return new PageResponse<>(
-                page.getContent(),
-                page.getNumber(),
-                page.getSize(),
-                page.getTotalElements(),
-                page.getTotalPages(),
-                page.isLast()
-        );
-    }
 }

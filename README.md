@@ -80,9 +80,11 @@ src/main/java/com/thurbandeira/todocli
 ```
 
 ## Arquitetura da API (camadas)
-- application: casos de uso (auth/task)
+- application: casos de uso (auth/task) + facades
+- application/usecase: use cases por acao (create/update/list/summary)
 - domain: entidades JPA (TaskEntity, UserAccount)
 - repository: acesso a dados (JPA)
+- mapper: DTO <-> Entity
 - controller: camada HTTP
 - security: JWT + Spring Security
 
