@@ -1,4 +1,4 @@
-package com.thurbandeira.todocli.api.service;
+package com.thurbandeira.todocli.api.application.task;
 
 import com.thurbandeira.todocli.api.domain.TaskEntity;
 import com.thurbandeira.todocli.api.domain.UserAccount;
@@ -7,56 +7,62 @@ import com.thurbandeira.todocli.api.exception.ValidationException;
 import com.thurbandeira.todocli.api.repository.TaskRepository;
 import com.thurbandeira.todocli.api.repository.UserRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.stereotype.Service;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-public class TaskQueryService {
+public class TaskApplicationService implements TaskUseCases {
 
     private static final int MAX_TITLE = 200;
 
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
 
-    public TaskQueryService(TaskRepository taskRepository, UserRepository userRepository) {
+    public TaskApplicationService(TaskRepository taskRepository, UserRepository userRepository) {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
     }
 
+    @Override
     public List<TaskEntity> listAll(String username) {
         UserAccount user = requireUser(username);
         return taskRepository.findAllByOwnerOrderByCompletedAscIdAsc(user);
     }
 
+    @Override
     public List<TaskEntity> listByStatus(String username, boolean completed) {
         UserAccount user = requireUser(username);
         return taskRepository.findAllByOwnerAndCompletedOrderByIdAsc(user, completed);
     }
 
+    @Override
     public List<TaskEntity> search(String username, String keyword) {
         UserAccount user = requireUser(username);
         return taskRepository.findAllByOwnerAndTitleContainingIgnoreCaseOrderByIdAsc(user, keyword);
     }
 
+    @Override
     public Page<TaskEntity> listAllPaged(String username, Pageable pageable) {
         UserAccount user = requireUser(username);
         return taskRepository.findAllByOwner(user, pageable);
     }
 
+    @Override
     public Page<TaskEntity> listByStatusPaged(String username, boolean completed, Pageable pageable) {
         UserAccount user = requireUser(username);
         return taskRepository.findAllByOwnerAndCompleted(user, completed, pageable);
     }
 
+    @Override
     public Page<TaskEntity> searchPaged(String username, String keyword, Pageable pageable) {
         UserAccount user = requireUser(username);
         return taskRepository.findAllByOwnerAndTitleContainingIgnoreCase(user, keyword, pageable);
     }
 
+    @Override
     @Transactional
     public TaskEntity add(String username, String title) {
         if (title == null || title.trim().isEmpty()) {
@@ -70,6 +76,7 @@ public class TaskQueryService {
         return taskRepository.save(task);
     }
 
+    @Override
     @Transactional
     public TaskEntity update(String username, long id, String title) {
         if (title == null || title.trim().isEmpty()) {
@@ -85,6 +92,7 @@ public class TaskQueryService {
         return task;
     }
 
+    @Override
     @Transactional
     public TaskEntity complete(String username, long id) {
         UserAccount user = requireUser(username);
@@ -94,6 +102,7 @@ public class TaskQueryService {
         return task;
     }
 
+    @Override
     @Transactional
     public void remove(String username, long id) {
         UserAccount user = requireUser(username);
@@ -102,6 +111,7 @@ public class TaskQueryService {
         taskRepository.delete(task);
     }
 
+    @Override
     @Transactional
     public Summary summary(String username) {
         UserAccount user = requireUser(username);
@@ -111,6 +121,7 @@ public class TaskQueryService {
         return new Summary((int) total, (int) pending, (int) done);
     }
 
+    @Override
     @Transactional
     public Summary clearCompleted(String username) {
         UserAccount user = requireUser(username);
@@ -123,6 +134,4 @@ public class TaskQueryService {
                 .orElseThrow(() -> new NotFoundException("Usuario nao encontrado."));
     }
 
-    public record Summary(int total, int pending, int done) {
-    }
 }

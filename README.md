@@ -79,6 +79,13 @@ src/main/java/com/thurbandeira/todocli
   storage/    -> persistência
 ```
 
+## Arquitetura da API (camadas)
+- application: casos de uso (auth/task)
+- domain: entidades JPA (TaskEntity, UserAccount)
+- repository: acesso a dados (JPA)
+- controller: camada HTTP
+- security: JWT + Spring Security
+
 ## API (exemplos)
 ```
 POST /api/auth/register

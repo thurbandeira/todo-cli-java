@@ -1,4 +1,4 @@
-package com.thurbandeira.todocli.api.service;
+package com.thurbandeira.todocli.api.application.auth;
 
 import com.thurbandeira.todocli.api.domain.UserAccount;
 import com.thurbandeira.todocli.api.exception.UnauthorizedException;
@@ -11,23 +11,24 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
-public class AuthService {
+public class AuthApplicationService implements AuthUseCases {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
 
-    public AuthService(UserRepository userRepository,
-                       PasswordEncoder passwordEncoder,
-                       AuthenticationManager authenticationManager,
-                       JwtService jwtService) {
+    public AuthApplicationService(UserRepository userRepository,
+                                  PasswordEncoder passwordEncoder,
+                                  AuthenticationManager authenticationManager,
+                                  JwtService jwtService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
     }
 
+    @Override
     public String register(String username, String password) {
         if (userRepository.existsByUsername(username)) {
             throw new ValidationException("Usuario ja existe.");
@@ -37,11 +38,13 @@ public class AuthService {
         return jwtService.generateToken(user.getUsername());
     }
 
+    @Override
     public String login(String username, String password) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
         return jwtService.generateToken(username);
     }
 
+    @Override
     public String refresh(String token) {
         if (token == null || token.isBlank()) {
             throw new UnauthorizedException("Token ausente.");

@@ -1,9 +1,9 @@
 package com.thurbandeira.todocli.api.controller;
 
+import com.thurbandeira.todocli.api.application.auth.AuthUseCases;
 import com.thurbandeira.todocli.api.dto.AuthRequest;
 import com.thurbandeira.todocli.api.dto.AuthResponse;
 import com.thurbandeira.todocli.api.dto.RegisterRequest;
-import com.thurbandeira.todocli.api.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    private final AuthService authService;
+    private final AuthUseCases authService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthUseCases authService) {
         this.authService = authService;
     }
 

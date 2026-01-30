@@ -5,8 +5,8 @@ import com.thurbandeira.todocli.api.dto.SummaryResponse;
 import com.thurbandeira.todocli.api.dto.TaskRequest;
 import com.thurbandeira.todocli.api.dto.TaskResponse;
 import com.thurbandeira.todocli.api.dto.TaskUpdateRequest;
+import com.thurbandeira.todocli.api.application.task.TaskUseCases;
 import com.thurbandeira.todocli.api.domain.TaskEntity;
-import com.thurbandeira.todocli.api.service.TaskQueryService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.HttpStatus;
@@ -28,9 +28,9 @@ import java.util.List;
 @Validated
 public class TaskController {
 
-    private final TaskQueryService service;
+    private final TaskUseCases service;
 
-    public TaskController(TaskQueryService service) {
+    public TaskController(TaskUseCases service) {
         this.service = service;
     }
 
@@ -52,7 +52,7 @@ public class TaskController {
 
     @GetMapping("/summary")
     public SummaryResponse summary(@AuthenticationPrincipal UserDetails user) {
-        TaskQueryService.Summary summary = service.summary(user.getUsername());
+        TaskUseCases.Summary summary = service.summary(user.getUsername());
         return new SummaryResponse(summary.total(), summary.pending(), summary.done());
     }
 
@@ -103,7 +103,7 @@ public class TaskController {
 
     @PostMapping("/clear-completed")
     public SummaryResponse clearCompleted(@AuthenticationPrincipal UserDetails user) {
-        TaskQueryService.Summary summary = service.clearCompleted(user.getUsername());
+        TaskUseCases.Summary summary = service.clearCompleted(user.getUsername());
         return new SummaryResponse(summary.total(), summary.pending(), summary.done());
     }
 
