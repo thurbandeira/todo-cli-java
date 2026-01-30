@@ -8,19 +8,26 @@ const state = {
 };
 
 const el = (id) => document.getElementById(id);
-const logEl = el("log");
+const toastEl = el("toast");
+let toastTimeout = null;
 
-function log(message) {
-  const time = new Date().toLocaleTimeString();
-  logEl.textContent = `[${time}] ${message}\n` + logEl.textContent;
+function toast(message, type = "success") {
+  toastEl.textContent = message;
+  toastEl.className = `toast show ${type}`;
+  if (toastTimeout) clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => {
+    toastEl.className = "toast";
+  }, 2500);
 }
 
 function setAuthStatus() {
   const status = el("authStatus");
   if (state.token) {
     status.textContent = "Autenticado.";
+    status.style.color = "#6ee7b7";
   } else {
     status.textContent = "Nao autenticado.";
+    status.style.color = "#a6b0c2";
   }
 }
 
@@ -38,6 +45,7 @@ function saveBaseUrl(url) {
 async function request(path, options = {}) {
   const url = `${state.baseUrl}${path}`;
   const headers = options.headers || {};
+  headers.Accept = "application/json";
   if (state.token) {
     headers.Authorization = `Bearer ${state.token}`;
   }
@@ -68,7 +76,7 @@ async function register() {
   const username = el("username").value.trim();
   const password = el("password").value.trim();
   if (!username || !password) {
-    log("Informe usuario e senha.");
+    toast("Informe usuario e senha.", "error");
     return;
   }
   const data = await request("/api/auth/register", {
@@ -77,14 +85,15 @@ async function register() {
     body: JSON.stringify({ username, password }),
   });
   saveToken(data.token);
-  log("Registrado e autenticado.");
+  toast("Conta criada e autenticado.");
+  await listAll();
 }
 
 async function login() {
   const username = el("username").value.trim();
   const password = el("password").value.trim();
   if (!username || !password) {
-    log("Informe usuario e senha.");
+    toast("Informe usuario e senha.", "error");
     return;
   }
   const data = await request("/api/auth/login", {
@@ -93,12 +102,14 @@ async function login() {
     body: JSON.stringify({ username, password }),
   });
   saveToken(data.token);
-  log("Login realizado.");
+  toast("Login realizado.");
+  await listAll();
 }
 
 function logout() {
   saveToken("");
-  log("Logout.");
+  toast("Logout.");
+  renderTasks([]);
 }
 
 async function refreshToken() {
@@ -112,7 +123,7 @@ async function refreshToken() {
     }
     const data = await response.json();
     saveToken(data.token);
-    log("Token renovado.");
+    toast("Token renovado.");
     return true;
   } catch {
     return false;
@@ -122,7 +133,7 @@ async function refreshToken() {
 async function addTask() {
   const title = el("newTitle").value.trim();
   if (!title) {
-    log("Titulo invalido.");
+    toast("Titulo invalido.", "error");
     return;
   }
   const data = await request("/api/tasks", {
@@ -131,7 +142,7 @@ async function addTask() {
     body: JSON.stringify({ title }),
   });
   el("newTitle").value = "";
-  log(`Tarefa criada (#${data.id}).`);
+  toast(`Tarefa criada (#${data.id}).`);
   await listPaged(0);
 }
 
@@ -159,7 +170,7 @@ function renderTasks(tasks) {
       doneBtn.textContent = "Concluir";
       doneBtn.onclick = async () => {
         await request(`/api/tasks/${task.id}/complete`, { method: "POST" });
-        log(`Tarefa #${task.id} concluida.`);
+        toast(`Tarefa #${task.id} concluida.`);
         await listAll();
       };
       actions.appendChild(doneBtn);
@@ -170,7 +181,7 @@ function renderTasks(tasks) {
     removeBtn.textContent = "Remover";
     removeBtn.onclick = async () => {
       await request(`/api/tasks/${task.id}`, { method: "DELETE" });
-      log(`Tarefa #${task.id} removida.`);
+      toast(`Tarefa #${task.id} removida.`);
       await listAll();
     };
     actions.appendChild(removeBtn);
@@ -204,7 +215,7 @@ async function listCompleted() {
 async function searchTasks() {
   const keyword = el("searchText").value.trim();
   if (!keyword) {
-    log("Informe a palavra-chave.");
+    toast("Informe a palavra-chave.", "error");
     return;
   }
   const data = await request(
@@ -246,23 +257,23 @@ function init() {
 
   el("saveBaseUrl").onclick = () => {
     saveBaseUrl(el("baseUrl").value.trim());
-    log("Base URL atualizada.");
+    toast("Base URL atualizada.");
   };
 
-  el("registerBtn").onclick = () => register().catch((e) => log(e.message));
-  el("loginBtn").onclick = () => login().catch((e) => log(e.message));
+  el("registerBtn").onclick = () => register().catch((e) => toast(e.message, "error"));
+  el("loginBtn").onclick = () => login().catch((e) => toast(e.message, "error"));
   el("logoutBtn").onclick = logout;
 
-  el("addBtn").onclick = () => addTask().catch((e) => log(e.message));
-  el("listAllBtn").onclick = () => listAll().catch((e) => log(e.message));
-  el("listPendingBtn").onclick = () => listPending().catch((e) => log(e.message));
-  el("listCompletedBtn").onclick = () => listCompleted().catch((e) => log(e.message));
-  el("searchBtn").onclick = () => searchTasks().catch((e) => log(e.message));
-  el("clearCompletedBtn").onclick = () => clearCompleted().catch((e) => log(e.message));
+  el("addBtn").onclick = () => addTask().catch((e) => toast(e.message, "error"));
+  el("listAllBtn").onclick = () => listAll().catch((e) => toast(e.message, "error"));
+  el("listPendingBtn").onclick = () => listPending().catch((e) => toast(e.message, "error"));
+  el("listCompletedBtn").onclick = () => listCompleted().catch((e) => toast(e.message, "error"));
+  el("searchBtn").onclick = () => searchTasks().catch((e) => toast(e.message, "error"));
+  el("clearCompletedBtn").onclick = () => clearCompleted().catch((e) => toast(e.message, "error"));
   el("prevPageBtn").onclick = () =>
-    listPaged(Math.max(0, state.page - 1), state.currentStatus || "all").catch((e) => log(e.message));
+    listPaged(Math.max(0, state.page - 1), state.currentStatus || "all").catch((e) => toast(e.message, "error"));
   el("nextPageBtn").onclick = () =>
-    listPaged(state.page + 1, state.currentStatus || "all").catch((e) => log(e.message));
+    listPaged(state.page + 1, state.currentStatus || "all").catch((e) => toast(e.message, "error"));
 }
 
 init();

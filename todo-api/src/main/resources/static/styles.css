@@ -216,13 +216,35 @@ body {
   gap: 8px;
 }
 
-.log {
-  background: #0b0f1a;
-  color: #cbd3e8;
-  padding: 12px;
+.toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  min-width: 240px;
+  max-width: 360px;
+  padding: 14px 16px;
   border-radius: 12px;
-  min-height: 140px;
-  overflow: auto;
+  background: #1f2a44;
+  color: #f5f6fb;
+  box-shadow: 0 12px 24px var(--shadow);
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toast.success {
+  border-left: 4px solid #6ee7b7;
+}
+
+.toast.error {
+  border-left: 4px solid #ff6b6b;
 }
 
 .helper {
