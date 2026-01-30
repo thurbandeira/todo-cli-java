@@ -1,4 +1,6 @@
 # todo-cli-java
+![CI](https://github.com/SEU_USUARIO/SEU_REPO/actions/workflows/ci.yml/badge.svg)
+> Troque SEU_USUARIO/SEU_REPO pelo caminho real do GitHub.
 
 Um gerenciador de tarefas em linha de comando (CLI) feito em Java para aprendizado e portfólio.
 
@@ -60,6 +62,12 @@ http://localhost:8080/h2-console
 - Kanban com drag-and-drop para concluir tarefas
 - Notificacoes visuais (toast) e feed de atividade
 - Grafico e KPIs com Chart.js
+
+## Decisoes tecnicas (resumo)
+- Separacao em camadas com casos de uso para manter o dominio simples e testavel.
+- API REST com JWT para autenticar e isolar dados por usuario.
+- Persistencia local no modo dev (H2) e profile para PostgreSQL.
+- UI estatica servida pela API para reduzir setup local.
 
 ## Exemplos (modo interativo)
 ```
@@ -197,6 +205,16 @@ Opcional:
 Smoke test completo:
 ```powershell
 .\scripts\test-smoke.ps1
+```
+
+## Demo rapida (seed de dados)
+Com a API rodando, gere dados para o dashboard:
+```powershell
+.\scripts\seed-demo.ps1
+```
+Opcional (usuario/senha custom):
+```powershell
+.\scripts\seed-demo.ps1 -Username demo -Password secret123
 ```
 
 ## Front-end basico (sem build e sem Python/Node)
