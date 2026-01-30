@@ -1,2 +1,3 @@
+com\thurbandeira\todocli\cli\CliAppTest.class
 com\thurbandeira\todocli\storage\StorageTest.class
 com\thurbandeira\todocli\service\TaskServiceTest.class

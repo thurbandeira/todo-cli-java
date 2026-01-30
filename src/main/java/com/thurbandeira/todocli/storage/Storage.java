@@ -15,6 +15,10 @@ public class Storage implements TaskRepository {
         this.filePath = filePath;
     }
 
+    public String getFilePath() {
+        return filePath;
+    }
+
     public List<Task> load() {
         List<Task> tasks = new ArrayList<>();
         File file = new File(filePath);

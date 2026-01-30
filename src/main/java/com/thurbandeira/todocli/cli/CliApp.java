@@ -16,9 +16,13 @@ public class CliApp {
     private final TaskRepository storage;
 
     public CliApp() {
-        this.scanner = new Scanner(System.in);
+        this(new Storage("data/tasks.json"), new Scanner(System.in));
+    }
+
+    public CliApp(TaskRepository storage, Scanner scanner) {
+        this.scanner = scanner;
         this.taskService = new TaskService();
-        this.storage = new Storage("data/tasks.json");
+        this.storage = storage;
     }
 
     public void run(String[] args) {
@@ -176,12 +180,13 @@ public class CliApp {
     private void migrateIfNeeded() {
         if (!(storage instanceof Storage concreteStorage)) return;
 
-        File jsonFile = new File("data/tasks.json");
-        File csvFile = new File("data/tasks.csv");
+        File jsonFile = new File(concreteStorage.getFilePath());
+        String csvPath = jsonFile.getPath().replaceAll("\\.json$", ".csv");
+        File csvFile = new File(csvPath);
         if (!jsonFile.exists() && csvFile.exists()) {
             boolean migrated = concreteStorage.migrateFromCsv(csvFile.getPath());
             if (migrated) {
-                System.out.println("Migracao concluida: data/tasks.csv -> data/tasks.json");
+                System.out.println("Migracao concluida: " + csvFile.getPath() + " -> " + jsonFile.getPath());
             }
         }
     }
