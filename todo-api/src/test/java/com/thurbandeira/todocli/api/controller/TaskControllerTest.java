@@ -46,4 +46,18 @@ class TaskControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.title").value("Nova"));
     }
+
+    @Test
+    void createTask_rejectsBlankTitle() throws Exception {
+        mockMvc.perform(post("/api/tasks")
+                        .contentType(APPLICATION_JSON)
+                        .content("{\"title\":\"\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void search_requiresKeyword() throws Exception {
+        mockMvc.perform(get("/api/tasks/search").param("keyword", ""))
+                .andExpect(status().isBadRequest());
+    }
 }

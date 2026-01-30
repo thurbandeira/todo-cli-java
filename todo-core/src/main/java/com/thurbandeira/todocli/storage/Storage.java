@@ -1,6 +1,10 @@
 package com.thurbandeira.todocli.storage;
 import com.thurbandeira.todocli.model.Task;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -27,7 +31,7 @@ public class Storage implements TaskRepository {
             return tasks; // arquivo ainda não existe
         }
 
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+        try (BufferedReader br = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
             StringBuilder sb = new StringBuilder();
             String line;
             while ((line = br.readLine()) != null) {
@@ -56,7 +60,7 @@ public class Storage implements TaskRepository {
 
             backupExisting(file);
 
-            try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+            try (BufferedWriter bw = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8)) {
                 bw.write(toJson(tasks));
             }
 
@@ -70,7 +74,7 @@ public class Storage implements TaskRepository {
         if (!csvFile.exists()) return false;
 
         List<Task> tasks = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
+        try (BufferedReader br = Files.newBufferedReader(csvFile.toPath(), StandardCharsets.UTF_8)) {
             String line;
             while ((line = br.readLine()) != null) {
                 if (line.trim().isEmpty()) continue;

@@ -21,6 +21,11 @@ java -jar todo-cli/target/todo-cli.jar
 mvn -pl todo-api spring-boot:run
 ```
 
+### Swagger UI
+```
+http://localhost:8080/swagger-ui
+```
+
 ## Funcionalidades atuais
 - Adicionar tarefa
 - Listar tarefas (com resumo)

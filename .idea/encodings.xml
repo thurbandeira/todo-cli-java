@@ -3,5 +3,11 @@
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/todo-api/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/todo-api/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/todo-cli/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/todo-cli/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/todo-core/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/todo-core/src/main/resources" charset="UTF-8" />
   </component>
 </project>

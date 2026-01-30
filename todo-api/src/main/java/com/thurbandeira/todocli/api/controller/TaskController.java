@@ -45,7 +45,7 @@ public class TaskController {
     }
 
     @GetMapping("/search")
-    public List<TaskResponse> search(@RequestParam @NotBlank String keyword) {
+    public List<TaskResponse> search(@RequestParam @NotBlank(message = "Keyword obrigatoria.") String keyword) {
         return mapTasks(manager.search(keyword));
     }
 
