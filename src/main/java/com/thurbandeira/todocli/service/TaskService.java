@@ -12,7 +12,10 @@ public class TaskService {
     private int nextId = 1;
 
     public Task addTask(String title) {
-        Task task = new Task(nextId, title);
+        if (title == null || title.trim().isEmpty()) {
+            throw new IllegalArgumentException("titulo invalido");
+        }
+        Task task = new Task(nextId, title.trim());
         tasks.add(task);
         nextId++;
         return task;
@@ -36,6 +39,15 @@ public class TaskService {
 
         task.markAsCompleted();
         return MarkResult.MARKED;
+    }
+
+    public UpdateCompletionResult updateCompletion(int id, boolean completed) {
+        Task task = findById(id);
+        if (task == null) {
+            return UpdateCompletionResult.NOT_FOUND;
+        }
+        task.setCompleted(completed);
+        return UpdateCompletionResult.UPDATED;
     }
 
     public boolean removeTask(int id) {
@@ -130,6 +142,11 @@ public class TaskService {
         UPDATED,
         NOT_FOUND,
         INVALID_TITLE
+    }
+
+    public enum UpdateCompletionResult {
+        UPDATED,
+        NOT_FOUND
     }
 
     public record Summary(int total, int pending, int done) {

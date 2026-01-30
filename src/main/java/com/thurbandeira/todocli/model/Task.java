@@ -37,4 +37,8 @@ public class Task {
     public void markAsCompleted() {
         this.completed = true;
     }
+
+    public void setCompleted(boolean completed) {
+        this.completed = completed;
+    }
 }

@@ -23,6 +23,16 @@ class TaskServiceTest {
     }
 
     @Test
+    void addTask_trimsAndRejectsBlank() {
+        TaskService service = new TaskService();
+
+        Task task = service.addTask("  Nova tarefa  ");
+
+        assertEquals("Nova tarefa", task.getTitle());
+        assertThrows(IllegalArgumentException.class, () -> service.addTask("   "));
+    }
+
+    @Test
     void markTaskAsCompleted_handlesMissingAndAlreadyDone() {
         TaskService service = new TaskService();
         service.addTask("Tarefa");

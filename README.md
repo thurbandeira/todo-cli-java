@@ -12,6 +12,22 @@ mvn package
 java -jar target/todo-cli.jar
 ```
 
+## API REST (backend)
+Para iniciar a API REST (Spring Boot):
+```bash
+mvn spring-boot:run
+```
+
+Endpoints principais:
+- `GET /api/tasks` (todas)
+- `GET /api/tasks?status=pending|completed`
+- `GET /api/tasks/search?keyword=...`
+- `GET /api/tasks/summary`
+- `POST /api/tasks` (body: `{"title":"..."}`)
+- `PATCH /api/tasks/{id}` (body: `{"title":"...","completed":true}`)
+- `DELETE /api/tasks/{id}`
+- `POST /api/tasks/clear-completed`
+
 ## Funcionalidades atuais
 - Adicionar tarefa
 - Listar tarefas (com resumo)
