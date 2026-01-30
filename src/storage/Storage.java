@@ -45,11 +45,22 @@ public class Storage {
     }
 
     public void save(List<Task> tasks) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(filePath))) {
-            for (Task task : tasks) {
-                bw.write(task.getId() + ";" + task.getTitle() + ";" + task.isCompleted());
-                bw.newLine();
+        try {
+            File file = new File(filePath);
+
+            // cria a pasta (data/) se não existir
+            File parent = file.getParentFile();
+            if (parent != null && !parent.exists()) {
+                parent.mkdirs();
             }
+
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+                for (Task task : tasks) {
+                    bw.write(task.getId() + ";" + task.getTitle() + ";" + task.isCompleted());
+                    bw.newLine();
+                }
+            }
+
         } catch (Exception e) {
             System.out.println("Erro ao salvar arquivo: " + e.getMessage());
         }

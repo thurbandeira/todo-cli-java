@@ -13,7 +13,7 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         TaskService taskService = new TaskService();
 
-        Storage storage = new Storage("tasks.csv");
+        Storage storage = new Storage("data/tasks.csv");
 
         List<Task> loadedTasks = storage.load();
         taskService.setTasks(loadedTasks);
