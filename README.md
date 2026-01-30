@@ -223,6 +223,12 @@ http://localhost:8080
 - Confirmar KPIs e grafico atualizando
 - Sair e validar bloqueio de rotas autenticadas
 
+## Sugestao de prints para portfolio
+- Tela Overview com resumo e lista
+- Aba Tasks com Kanban cheio
+- Aba Insights com KPIs e grafico
+- Aba Settings com autenticacao
+
 ## Roadmap (curto)
 - CLI mais rica (flags)
 - Tests de integracao para a CLI
