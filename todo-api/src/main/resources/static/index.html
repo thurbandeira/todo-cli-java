@@ -3,79 +3,182 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Todo Web - Teste API</title>
+    <title>Todo Cloud - Full Stack Lab</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="page">
-      <header class="hero">
-        <div class="hero-text">
-          <p class="eyebrow">Todo CLI + API</p>
-          <h1>Teste rapido do back-end</h1>
-          <p class="subtitle">
-            Interface simples para cadastrar usuario, autenticar e gerenciar tarefas via API.
-          </p>
+    <div class="shell">
+      <aside class="sidebar glass">
+        <div class="brand">
+          <div class="brand-dot"></div>
+          <div>
+            <p class="brand-title">Todo Cloud</p>
+            <p class="brand-subtitle">Liquid Lab</p>
+          </div>
         </div>
-        <div class="hero-card">
-          <label class="label">API Base URL</label>
-          <input id="baseUrl" class="input" type="text" value="http://localhost:8080" />
-          <button id="saveBaseUrl" class="btn secondary">Salvar URL</button>
-          <p class="helper">Padrao: http://localhost:8080</p>
+        <nav class="nav">
+          <button class="nav-item active" data-tab="overview">Overview</button>
+          <button class="nav-item" data-tab="tasks">Tasks</button>
+          <button class="nav-item" data-tab="insights">Insights</button>
+          <button class="nav-item" data-tab="settings">Settings</button>
+        </nav>
+        <div class="sidebar-footer">
+          <div id="authStatus" class="status-pill">Nao autenticado</div>
+          <button id="logoutBtn" class="btn ghost full">Sair</button>
         </div>
-      </header>
+      </aside>
 
-      <main class="grid">
-        <section class="card">
-          <h2>Autenticacao</h2>
-          <div class="row">
-            <div class="field">
-              <label class="label">Usuario</label>
-              <input id="username" class="input" type="text" placeholder="user123" />
+      <main class="main">
+        <header class="topbar glass">
+          <div>
+            <p class="eyebrow">Full-stack Playground</p>
+            <h1>Dashboard de tarefas</h1>
+          </div>
+          <div class="topbar-actions">
+            <button id="refreshBtn" class="btn ghost">Atualizar</button>
+            <button id="openAuthBtn" class="btn primary">Entrar</button>
+          </div>
+        </header>
+
+        <section id="tab-overview" class="tab active">
+          <div class="grid">
+            <div class="card glass">
+              <h2>Resumo geral</h2>
+              <div id="summary" class="summary-row">Total: 0 | Pendentes: 0 | Concluidas: 0</div>
+              <div class="progress">
+                <div id="progressBar" class="progress-bar"></div>
+              </div>
+              <div class="summary-meta">
+                <span id="completionRate">0% concluidas</span>
+                <span id="activeUser">Usuario: -</span>
+              </div>
             </div>
-            <div class="field">
-              <label class="label">Senha</label>
-              <input id="password" class="input" type="password" placeholder="secret123" />
+
+            <div class="card glass">
+              <h2>Acoes rapidas</h2>
+              <div class="row">
+                <input id="quickTitle" class="input" type="text" placeholder="Nova tarefa rapida" />
+                <button id="quickAddBtn" class="btn primary">Adicionar</button>
+              </div>
+              <div class="row">
+                <button id="quickPendingBtn" class="btn ghost">Pendentes</button>
+                <button id="quickCompletedBtn" class="btn ghost">Concluidas</button>
+                <button id="clearCompletedBtn" class="btn danger">Limpar concluidas</button>
+              </div>
+            </div>
+
+            <div class="card glass wide">
+              <div class="card-header">
+                <h2>Fila atual</h2>
+                <div class="pill" id="pageInfo">Pagina 1</div>
+              </div>
+              <div class="pager">
+                <button id="prevPageBtn" class="btn ghost">Anterior</button>
+                <button id="nextPageBtn" class="btn ghost">Proxima</button>
+              </div>
+              <ul id="taskList" class="list"></ul>
             </div>
           </div>
-          <div class="row">
-            <button id="registerBtn" class="btn primary">Criar conta</button>
-            <button id="loginBtn" class="btn secondary">Entrar</button>
-            <button id="logoutBtn" class="btn ghost">Sair</button>
-          </div>
-          <div id="authStatus" class="status">Nao autenticado.</div>
         </section>
 
-        <section class="card">
-          <h2>Nova tarefa</h2>
-          <div class="row">
-            <input id="newTitle" class="input" type="text" placeholder="Comprar leite" />
-            <button id="addBtn" class="btn primary">Adicionar</button>
-          </div>
-          <div class="row">
-            <input id="searchText" class="input" type="text" placeholder="Buscar por palavra" />
-            <button id="searchBtn" class="btn secondary">Buscar</button>
-            <button id="listAllBtn" class="btn ghost">Listar tudo</button>
-          </div>
-          <div class="row">
-            <button id="listPendingBtn" class="btn ghost">Pendentes</button>
-            <button id="listCompletedBtn" class="btn ghost">Concluidas</button>
-            <button id="clearCompletedBtn" class="btn danger">Limpar concluidas</button>
+        <section id="tab-tasks" class="tab">
+          <div class="grid">
+            <div class="card glass">
+              <h2>Nova tarefa</h2>
+              <div class="row">
+                <input id="newTitle" class="input" type="text" placeholder="Comprar leite" />
+                <button id="addBtn" class="btn primary">Adicionar</button>
+              </div>
+              <div class="row">
+                <input id="searchText" class="input" type="text" placeholder="Buscar por palavra" />
+                <button id="searchBtn" class="btn secondary">Buscar</button>
+                <button id="listAllBtn" class="btn ghost">Listar tudo</button>
+              </div>
+              <div class="row">
+                <button id="listPendingBtn" class="btn ghost">Pendentes</button>
+                <button id="listCompletedBtn" class="btn ghost">Concluidas</button>
+              </div>
+            </div>
+
+            <div class="card glass wide">
+              <div class="card-header">
+                <h2>Backlog</h2>
+                <div class="pill">Ativo</div>
+              </div>
+              <ul id="taskListTasks" class="list"></ul>
+            </div>
           </div>
         </section>
 
-        <section class="card full">
-          <div class="card-header">
-            <h2>Tarefas</h2>
-            <div id="summary" class="pill">Total: 0 | Pendentes: 0 | Concluidas: 0</div>
+        <section id="tab-insights" class="tab">
+          <div class="grid">
+            <div class="card glass">
+              <h2>Indicadores</h2>
+              <div class="kpi">
+                <div>
+                  <p class="kpi-label">Total</p>
+                  <p id="kpiTotal" class="kpi-value">0</p>
+                </div>
+                <div>
+                  <p class="kpi-label">Pendentes</p>
+                  <p id="kpiPending" class="kpi-value">0</p>
+                </div>
+                <div>
+                  <p class="kpi-label">Concluidas</p>
+                  <p id="kpiDone" class="kpi-value">0</p>
+                </div>
+              </div>
+              <div class="mini-chart">
+                <div id="barPending" class="bar pending"></div>
+                <div id="barDone" class="bar done"></div>
+              </div>
+            </div>
+            <div class="card glass">
+              <h2>Fluxo</h2>
+              <p class="muted">
+                Use as abas para filtrar, editar e acompanhar o ciclo das tarefas.
+              </p>
+              <ul class="checklist">
+                <li>Cadastro e login com JWT</li>
+                <li>Paginacao com ordenacao</li>
+                <li>Atualizacao e conclusao de tarefas</li>
+                <li>Resumo e limpeza de concluidas</li>
+              </ul>
+            </div>
           </div>
-          <div class="pager">
-            <button id="prevPageBtn" class="btn ghost">Anterior</button>
-            <span id="pageInfo" class="page-info">Pagina 1</span>
-            <button id="nextPageBtn" class="btn ghost">Proxima</button>
-          </div>
-          <ul id="taskList" class="list"></ul>
         </section>
 
+        <section id="tab-settings" class="tab">
+          <div class="grid">
+            <div class="card glass">
+              <h2>API e Sessao</h2>
+              <label class="label">API Base URL</label>
+              <input id="baseUrl" class="input" type="text" value="http://localhost:8080" />
+              <div class="row">
+                <button id="saveBaseUrl" class="btn secondary">Salvar URL</button>
+                <button id="refreshTokenBtn" class="btn ghost">Renovar token</button>
+              </div>
+              <p class="helper">Padrao: http://localhost:8080</p>
+            </div>
+            <div class="card glass">
+              <h2>Autenticacao</h2>
+              <div class="row">
+                <div class="field">
+                  <label class="label">Usuario</label>
+                  <input id="username" class="input" type="text" placeholder="user123" />
+                </div>
+                <div class="field">
+                  <label class="label">Senha</label>
+                  <input id="password" class="input" type="password" placeholder="secret123" />
+                </div>
+              </div>
+              <div class="row">
+                <button id="registerBtn" class="btn primary">Criar conta</button>
+                <button id="loginBtn" class="btn secondary">Entrar</button>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
     </div>
 
