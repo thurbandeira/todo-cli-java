@@ -83,17 +83,32 @@ src/main/java/com/thurbandeira/todocli
 ```
 POST /api/auth/register
 POST /api/auth/login
+POST /api/auth/refresh
 
 Todos os endpoints abaixo exigem Authorization: Bearer <TOKEN>
 GET  /api/tasks
 GET  /api/tasks?status=pending|completed|all
+GET  /api/tasks/page?status=all&page=0&size=20&sort=completed,asc;id,asc
 GET  /api/tasks/summary
 GET  /api/tasks/search?keyword=...
+GET  /api/tasks/search/page?keyword=...&page=0&size=20&sort=id,asc
 POST /api/tasks
 PUT  /api/tasks/{id}
 POST /api/tasks/{id}/complete
 DELETE /api/tasks/{id}
 POST /api/tasks/clear-completed
+```
+
+Resposta paginada (exemplo):
+```json
+{
+  "items": [{ "id": 1, "title": "Comprar leite", "completed": false }],
+  "page": 0,
+  "size": 20,
+  "totalElements": 1,
+  "totalPages": 1,
+  "last": true
+}
 ```
 
 ## Autenticacao (JWT)
@@ -114,6 +129,12 @@ curl -X POST http://localhost:8080/api/auth/login \
 3) Usar o token:
 ```bash
 curl http://localhost:8080/api/tasks \
+  -H "Authorization: Bearer <TOKEN>"
+```
+
+4) Renovar token:
+```bash
+curl -X POST http://localhost:8080/api/auth/refresh \
   -H "Authorization: Bearer <TOKEN>"
 ```
 

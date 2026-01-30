@@ -9,10 +9,15 @@ import com.thurbandeira.todocli.api.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.util.List;
 
 @Service
 public class TaskQueryService {
+
+    private static final int MAX_TITLE = 200;
 
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
@@ -37,10 +42,28 @@ public class TaskQueryService {
         return taskRepository.findAllByOwnerAndTitleContainingIgnoreCaseOrderByIdAsc(user, keyword);
     }
 
+    public Page<TaskEntity> listAllPaged(String username, Pageable pageable) {
+        UserAccount user = requireUser(username);
+        return taskRepository.findAllByOwner(user, pageable);
+    }
+
+    public Page<TaskEntity> listByStatusPaged(String username, boolean completed, Pageable pageable) {
+        UserAccount user = requireUser(username);
+        return taskRepository.findAllByOwnerAndCompleted(user, completed, pageable);
+    }
+
+    public Page<TaskEntity> searchPaged(String username, String keyword, Pageable pageable) {
+        UserAccount user = requireUser(username);
+        return taskRepository.findAllByOwnerAndTitleContainingIgnoreCase(user, keyword, pageable);
+    }
+
     @Transactional
     public TaskEntity add(String username, String title) {
         if (title == null || title.trim().isEmpty()) {
             throw new ValidationException("Titulo invalido.");
+        }
+        if (title.trim().length() > MAX_TITLE) {
+            throw new ValidationException("Titulo deve ter no maximo 200 caracteres.");
         }
         UserAccount user = requireUser(username);
         TaskEntity task = new TaskEntity(title.trim(), user);
@@ -51,6 +74,9 @@ public class TaskQueryService {
     public TaskEntity update(String username, long id, String title) {
         if (title == null || title.trim().isEmpty()) {
             throw new ValidationException("Titulo invalido.");
+        }
+        if (title.trim().length() > MAX_TITLE) {
+            throw new ValidationException("Titulo deve ter no maximo 200 caracteres.");
         }
         UserAccount user = requireUser(username);
         TaskEntity task = taskRepository.findByIdAndOwner(id, user)

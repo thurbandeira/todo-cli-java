@@ -1,6 +1,7 @@
 package com.thurbandeira.todocli.api.service;
 
 import com.thurbandeira.todocli.api.domain.UserAccount;
+import com.thurbandeira.todocli.api.exception.UnauthorizedException;
 import com.thurbandeira.todocli.api.exception.ValidationException;
 import com.thurbandeira.todocli.api.repository.UserRepository;
 import com.thurbandeira.todocli.api.security.JwtService;
@@ -38,6 +39,20 @@ public class AuthService {
 
     public String login(String username, String password) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+        return jwtService.generateToken(username);
+    }
+
+    public String refresh(String token) {
+        if (token == null || token.isBlank()) {
+            throw new UnauthorizedException("Token ausente.");
+        }
+        String username = jwtService.extractUsername(token);
+        if (!jwtService.isTokenValid(token, username)) {
+            throw new UnauthorizedException("Token invalido.");
+        }
+        if (userRepository.findByUsername(username).isEmpty()) {
+            throw new UnauthorizedException("Usuario nao encontrado.");
+        }
         return jwtService.generateToken(username);
     }
 }

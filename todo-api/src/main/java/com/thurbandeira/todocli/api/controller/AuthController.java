@@ -30,4 +30,14 @@ public class AuthController {
         String token = authService.login(request.username(), request.password());
         return new AuthResponse(token, "Bearer");
     }
+
+    @PostMapping("/refresh")
+    public AuthResponse refresh(@RequestHeader(name = "Authorization", required = false) String authHeader) {
+        String token = "";
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
+        }
+        String newToken = authService.refresh(token);
+        return new AuthResponse(newToken, "Bearer");
+    }
 }

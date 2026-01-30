@@ -1,6 +1,7 @@
 package com.thurbandeira.todocli.api.controller;
 
 import com.thurbandeira.todocli.api.exception.NotFoundException;
+import com.thurbandeira.todocli.api.exception.UnauthorizedException;
 import com.thurbandeira.todocli.api.exception.ValidationException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
@@ -40,6 +41,14 @@ public class ApiExceptionHandler {
     public ProblemDetail handleNotFound(NotFoundException ex) {
         ProblemDetail detail = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
         detail.setTitle("Nao encontrado");
+        detail.setDetail(ex.getMessage());
+        return detail;
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ProblemDetail handleUnauthorized(UnauthorizedException ex) {
+        ProblemDetail detail = ProblemDetail.forStatus(HttpStatus.UNAUTHORIZED);
+        detail.setTitle("Nao autorizado");
         detail.setDetail(ex.getMessage());
         return detail;
     }

@@ -70,6 +70,28 @@ class TaskControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    void listPage_returnsOk() throws Exception {
+        String token = registerAndGetToken();
+        mockMvc.perform(get("/api/tasks/page")
+                        .param("page", "0")
+                        .param("size", "5")
+                        .param("sort", "id,asc")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void create_rejectsTooLongTitle() throws Exception {
+        String token = registerAndGetToken();
+        String longTitle = "x".repeat(250);
+        mockMvc.perform(post("/api/tasks")
+                        .contentType(APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + token)
+                        .content("{\"title\":\"" + longTitle + "\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
     private String registerAndGetToken() throws Exception {
         String username = "user" + System.nanoTime();
         String response = mockMvc.perform(post("/api/auth/register")
