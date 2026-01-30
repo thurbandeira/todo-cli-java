@@ -1,6 +1,9 @@
 package com.thurbandeira.todocli.storage;
 import com.thurbandeira.todocli.model.Task;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,6 +50,8 @@ public class Storage implements TaskRepository {
                 parent.mkdirs();
             }
 
+            backupExisting(file);
+
             try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
                 bw.write(toJson(tasks));
             }
@@ -54,6 +59,35 @@ public class Storage implements TaskRepository {
         } catch (Exception e) {
             System.out.println("Erro ao salvar arquivo: " + e.getMessage());
         }
+    }
+
+    public boolean migrateFromCsv(String csvPath) {
+        File csvFile = new File(csvPath);
+        if (!csvFile.exists()) return false;
+
+        List<Task> tasks = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (line.trim().isEmpty()) continue;
+                String[] parts = line.split(";", 3);
+                if (parts.length < 3) continue;
+                try {
+                    int id = Integer.parseInt(parts[0]);
+                    String title = parts[1];
+                    boolean completed = Boolean.parseBoolean(parts[2]);
+                    tasks.add(new Task(id, title, completed));
+                } catch (NumberFormatException ignored) {
+                    // ignora linha malformada
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Erro ao migrar CSV: " + e.getMessage());
+            return false;
+        }
+
+        save(tasks);
+        return true;
     }
 
     private static String toJson(List<Task> tasks) {
@@ -251,5 +285,12 @@ public class Storage implements TaskRepository {
             this.value = value;
             this.next = next;
         }
+    }
+
+    private void backupExisting(File file) throws IOException {
+        if (!file.exists()) return;
+        Path source = file.toPath();
+        Path target = Path.of(file.getPath() + ".bak");
+        Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
     }
 }

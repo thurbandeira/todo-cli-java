@@ -21,6 +21,8 @@ java -jar target/todo-cli.jar
 - Buscar por palavra-chave
 - Filtrar pendentes e concluídas
 - Persistência em JSON (`data/tasks.json`)
+- Migracao automatica do CSV antigo (se existir)
+- Backup automatico do JSON (`.bak`)
 
 ## Exemplos (modo interativo)
 ```
@@ -63,6 +65,6 @@ mvn test
 ```
 
 ## Roadmap (curto)
-- Migracao automatica CSV -> JSON
-- Backup automatico do JSON
+- CLI mais rica (flags)
+- Tests de integracao para a CLI
 - Migração automática CSV -> JSON

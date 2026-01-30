@@ -5,6 +5,7 @@ import com.thurbandeira.todocli.service.TaskService;
 import com.thurbandeira.todocli.storage.Storage;
 import com.thurbandeira.todocli.storage.TaskRepository;
 
+import java.io.File;
 import java.util.List;
 import java.util.Scanner;
 
@@ -161,6 +162,7 @@ public class CliApp {
     }
 
     private void loadTasks() {
+        migrateIfNeeded();
         List<Task> loadedTasks = storage.load();
         taskService.setTasks(loadedTasks);
 
@@ -169,6 +171,19 @@ public class CliApp {
             if (t.getId() > maxId) maxId = t.getId();
         }
         taskService.setNextId(maxId + 1);
+    }
+
+    private void migrateIfNeeded() {
+        if (!(storage instanceof Storage concreteStorage)) return;
+
+        File jsonFile = new File("data/tasks.json");
+        File csvFile = new File("data/tasks.csv");
+        if (!jsonFile.exists() && csvFile.exists()) {
+            boolean migrated = concreteStorage.migrateFromCsv(csvFile.getPath());
+            if (migrated) {
+                System.out.println("Migracao concluida: data/tasks.csv -> data/tasks.json");
+            }
+        }
     }
 
     private void printLoadedInfo() {

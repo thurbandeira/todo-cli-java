@@ -43,4 +43,36 @@ class StorageTest {
 
         assertTrue(loaded.isEmpty());
     }
+
+    @Test
+    void migrateFromCsv_createsJson() throws Exception {
+        Path csv = tempDir.resolve("tasks.csv");
+        String content = "1;Primeira;false\n2;Segunda;true\n";
+        java.nio.file.Files.writeString(csv, content);
+
+        Path json = tempDir.resolve("tasks.json");
+        Storage storage = new Storage(json.toString());
+
+        boolean migrated = storage.migrateFromCsv(csv.toString());
+        List<Task> loaded = storage.load();
+
+        assertTrue(migrated);
+        assertEquals(2, loaded.size());
+        assertEquals("Primeira", loaded.get(0).getTitle());
+        assertTrue(loaded.get(1).isCompleted());
+    }
+
+    @Test
+    void save_createsBackupWhenFileExists() throws Exception {
+        Path json = tempDir.resolve("tasks.json");
+        Storage storage = new Storage(json.toString());
+
+        storage.save(List.of(new Task(1, "A")));
+        storage.save(List.of(new Task(1, "B")));
+
+        Path bak = tempDir.resolve("tasks.json.bak");
+        assertTrue(java.nio.file.Files.exists(bak));
+        String bakContent = java.nio.file.Files.readString(bak);
+        assertTrue(bakContent.contains("\"title\":\"A\""));
+    }
 }
