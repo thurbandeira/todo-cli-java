@@ -229,6 +229,12 @@ http://localhost:8080
 - Aba Insights com KPIs e grafico
 - Aba Settings com autenticacao
 
+### Placeholders (substitua pelos seus prints)
+![Overview](docs/screenshots/overview.svg)
+![Kanban](docs/screenshots/kanban.svg)
+![Insights](docs/screenshots/insights.svg)
+![Settings](docs/screenshots/settings.svg)
+
 ## Roadmap (curto)
 - CLI mais rica (flags)
 - Tests de integracao para a CLI
