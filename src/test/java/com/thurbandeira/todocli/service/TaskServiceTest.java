@@ -51,4 +51,35 @@ class TaskServiceTest {
         assertEquals(2, service.getTasks().size());
         assertTrue(service.getTasks().stream().noneMatch(t -> t.getId() == 2));
     }
+
+    @Test
+    void updateTitle_changesTitleAndValidates() {
+        TaskService service = new TaskService();
+        service.addTask("Antigo");
+
+        TaskService.UpdateResult updated = service.updateTitle(1, "Novo");
+        TaskService.UpdateResult invalid = service.updateTitle(1, "  ");
+        TaskService.UpdateResult missing = service.updateTitle(999, "X");
+
+        assertEquals(TaskService.UpdateResult.UPDATED, updated);
+        assertEquals("Novo", service.getTasks().get(0).getTitle());
+        assertEquals(TaskService.UpdateResult.INVALID_TITLE, invalid);
+        assertEquals(TaskService.UpdateResult.NOT_FOUND, missing);
+    }
+
+    @Test
+    void listByStatus_filtersCompletedAndPending() {
+        TaskService service = new TaskService();
+        service.addTask("A");
+        service.addTask("B");
+        service.markTaskAsCompleted(2);
+
+        List<Task> pending = service.listByStatus(false);
+        List<Task> completed = service.listByStatus(true);
+
+        assertEquals(1, pending.size());
+        assertEquals(1, completed.size());
+        assertEquals(1, pending.get(0).getId());
+        assertEquals(2, completed.get(0).getId());
+    }
 }

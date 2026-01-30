@@ -17,6 +17,9 @@ java -jar target/todo-cli.jar
 - Listar tarefas (com resumo)
 - Marcar como concluída
 - Remover tarefa
+- Editar tarefa
+- Buscar por palavra-chave
+- Filtrar pendentes e concluídas
 - Persistência em JSON (`data/tasks.json`)
 
 ## Exemplos (modo interativo)
@@ -26,6 +29,10 @@ java -jar target/todo-cli.jar
 2 - Listar tarefas
 3 - Marcar como concluida
 4 - Remover tarefa
+5 - Editar tarefa
+6 - Buscar por palavra-chave
+7 - Listar pendentes
+8 - Listar concluidas
 0 - Sair
 ```
 
@@ -33,6 +40,10 @@ java -jar target/todo-cli.jar
 ```bash
 java -jar target/todo-cli.jar add "Comprar leite"
 java -jar target/todo-cli.jar list
+java -jar target/todo-cli.jar pending
+java -jar target/todo-cli.jar completed
+java -jar target/todo-cli.jar search "leite"
+java -jar target/todo-cli.jar edit 1 "Comprar leite e pao"
 java -jar target/todo-cli.jar done 1
 java -jar target/todo-cli.jar remove 1
 ```
@@ -52,7 +63,6 @@ mvn test
 ```
 
 ## Roadmap (curto)
-- CLI por argumentos com `--help`
-- Editar tarefa
-- Filtros e busca
+- Migracao automatica CSV -> JSON
+- Backup automatico do JSON
 - Migração automática CSV -> JSON

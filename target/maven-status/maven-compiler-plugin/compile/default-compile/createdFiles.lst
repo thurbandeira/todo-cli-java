@@ -2,6 +2,7 @@ com\thurbandeira\todocli\model\Task.class
 com\thurbandeira\todocli\storage\Storage$ParseResult.class
 com\thurbandeira\todocli\service\TaskService$MarkResult.class
 com\thurbandeira\todocli\service\TaskService$Summary.class
+com\thurbandeira\todocli\service\TaskService$UpdateResult.class
 com\thurbandeira\todocli\service\TaskService.class
 com\thurbandeira\todocli\storage\Storage.class
 com\thurbandeira\todocli\cli\CliApp$1.class

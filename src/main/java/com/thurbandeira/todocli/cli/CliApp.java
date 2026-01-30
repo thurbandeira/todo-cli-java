@@ -63,12 +63,28 @@ public class CliApp {
                         System.out.println("Nao existe tarefa com esse ID.");
                     }
                 }
+                case 5 -> {
+                    int idEdit = readPositiveInt("Digite o ID da tarefa para editar: ");
+                    String newTitle = readNonEmpty("Digite o novo titulo da tarefa: ");
+                    TaskService.UpdateResult result = taskService.updateTitle(idEdit, newTitle);
+                    switch (result) {
+                        case UPDATED -> System.out.println("Tarefa atualizada com sucesso!");
+                        case NOT_FOUND -> System.out.println("Nao existe tarefa com esse ID.");
+                        case INVALID_TITLE -> System.out.println("Titulo invalido.");
+                    }
+                }
+                case 6 -> {
+                    String keyword = readNonEmpty("Digite a palavra-chave: ");
+                    printTasks(taskService.searchByKeyword(keyword));
+                }
+                case 7 -> printTasks(taskService.listByStatus(false));
+                case 8 -> printTasks(taskService.listByStatus(true));
                 case 0 -> {
                     storage.save(taskService.getTasks());
                     System.out.println("Tarefas salvas em data/tasks.json");
                     System.out.println("Saindo do sistema...");
                 }
-                default -> System.out.println("Opcao invalida! Digite um numero de 0 a 4.");
+                default -> System.out.println("Opcao invalida! Digite um numero de 0 a 8.");
             }
         } while (option != 0);
 
@@ -90,6 +106,30 @@ public class CliApp {
                 System.out.println("Tarefa adicionada com sucesso!");
             }
             case "list" -> printTasks(taskService.listTasksSorted());
+            case "pending" -> printTasks(taskService.listByStatus(false));
+            case "completed" -> printTasks(taskService.listByStatus(true));
+            case "search" -> {
+                String keyword = joinArgs(args, 1);
+                if (keyword.isBlank()) {
+                    System.out.println("Informe a palavra-chave.");
+                    return;
+                }
+                printTasks(taskService.searchByKeyword(keyword));
+            }
+            case "edit" -> {
+                Integer id = parseIdArg(args, 1);
+                if (id == null) return;
+                String newTitle = joinArgs(args, 2);
+                TaskService.UpdateResult result = taskService.updateTitle(id, newTitle);
+                switch (result) {
+                    case UPDATED -> {
+                        storage.save(taskService.getTasks());
+                        System.out.println("Tarefa atualizada com sucesso!");
+                    }
+                    case NOT_FOUND -> System.out.println("Nao existe tarefa com esse ID.");
+                    case INVALID_TITLE -> System.out.println("Titulo invalido.");
+                }
+            }
             case "done" -> {
                 Integer id = parseIdArg(args, 1);
                 if (id == null) return;
@@ -143,6 +183,10 @@ public class CliApp {
         System.out.println("2 - Listar tarefas");
         System.out.println("3 - Marcar como concluida");
         System.out.println("4 - Remover tarefa");
+        System.out.println("5 - Editar tarefa");
+        System.out.println("6 - Buscar por palavra-chave");
+        System.out.println("7 - Listar pendentes");
+        System.out.println("8 - Listar concluidas");
         System.out.println("0 - Sair");
     }
 
@@ -156,6 +200,10 @@ public class CliApp {
         System.out.println("Uso:");
         System.out.println("  todo-cli add \"titulo da tarefa\"");
         System.out.println("  todo-cli list");
+        System.out.println("  todo-cli pending");
+        System.out.println("  todo-cli completed");
+        System.out.println("  todo-cli search \"palavra-chave\"");
+        System.out.println("  todo-cli edit <id> \"novo titulo\"");
         System.out.println("  todo-cli done <id>");
         System.out.println("  todo-cli remove <id>");
         System.out.println("  todo-cli help");
@@ -202,9 +250,13 @@ public class CliApp {
             System.out.println(status + " " + task.getId() + " - " + task.getTitle() + doneText);
         }
 
-        TaskService.Summary summary = taskService.getSummary();
-        System.out.println("\nResumo: " + summary.total() + " total | " + summary.pending()
-                + " pendentes | " + summary.done() + " concluidas");
+        int done = 0;
+        for (Task task : tasks) {
+            if (task.isCompleted()) done++;
+        }
+        int total = tasks.size();
+        int pending = total - done;
+        System.out.println("\nResumo: " + total + " total | " + pending + " pendentes | " + done + " concluidas");
     }
 
     private int readInt(String prompt) {

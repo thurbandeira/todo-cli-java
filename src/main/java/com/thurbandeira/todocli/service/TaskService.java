@@ -20,7 +20,7 @@ public class TaskService {
 
     public List<Task> listTasksSorted() {
         List<Task> sorted = new ArrayList<>(tasks);
-        sorted.sort(Comparator.comparing(Task::isCompleted));
+        sorted.sort(Comparator.comparing(Task::isCompleted).thenComparingInt(Task::getId));
         return sorted;
     }
 
@@ -46,6 +46,29 @@ public class TaskService {
 
         tasks.remove(task);
         return true;
+    }
+
+    public UpdateResult updateTitle(int id, String newTitle) {
+        if (newTitle == null || newTitle.trim().isEmpty()) {
+            return UpdateResult.INVALID_TITLE;
+        }
+        Task task = findById(id);
+        if (task == null) {
+            return UpdateResult.NOT_FOUND;
+        }
+        task.setTitle(newTitle.trim());
+        return UpdateResult.UPDATED;
+    }
+
+    public List<Task> listByStatus(boolean completed) {
+        List<Task> filtered = new ArrayList<>();
+        for (Task task : tasks) {
+            if (task.isCompleted() == completed) {
+                filtered.add(task);
+            }
+        }
+        filtered.sort(Comparator.comparingInt(Task::getId));
+        return filtered;
     }
 
     private Task findById(int id) {
@@ -101,6 +124,12 @@ public class TaskService {
         MARKED,
         ALREADY_COMPLETED,
         NOT_FOUND
+    }
+
+    public enum UpdateResult {
+        UPDATED,
+        NOT_FOUND,
+        INVALID_TITLE
     }
 
     public record Summary(int total, int pending, int done) {
