@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Todo Cloud - Full Stack Lab</title>
     <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   </head>
   <body>
     <div class="shell">
@@ -23,6 +24,13 @@
           <button class="nav-item" data-tab="settings">Settings</button>
         </nav>
         <div class="sidebar-footer">
+          <div class="profile-card glass">
+            <div class="avatar"></div>
+            <div>
+              <p id="profileName" class="profile-name">Visitante</p>
+              <p id="profileRole" class="profile-role">Sem sessao</p>
+            </div>
+          </div>
           <div id="authStatus" class="status-pill">Nao autenticado</div>
           <button id="logoutBtn" class="btn ghost full">Sair</button>
         </div>
@@ -36,6 +44,7 @@
           </div>
           <div class="topbar-actions">
             <button id="refreshBtn" class="btn ghost">Atualizar</button>
+            <button id="themeToggleBtn" class="btn ghost">Tema</button>
             <button id="openAuthBtn" class="btn primary">Entrar</button>
           </div>
         </header>
@@ -65,6 +74,11 @@
                 <button id="quickCompletedBtn" class="btn ghost">Concluidas</button>
                 <button id="clearCompletedBtn" class="btn danger">Limpar concluidas</button>
               </div>
+            </div>
+
+            <div class="card glass">
+              <h2>Atividade recente</h2>
+              <ul id="activityFeed" class="activity"></ul>
             </div>
 
             <div class="card glass wide">
@@ -102,6 +116,23 @@
 
             <div class="card glass wide">
               <div class="card-header">
+                <h2>Kanban</h2>
+                <div class="pill">Arraste entre colunas</div>
+              </div>
+              <div class="kanban">
+                <div class="kanban-col" data-status="pending">
+                  <h3>Pendentes</h3>
+                  <div id="kanbanPending" class="kanban-list"></div>
+                </div>
+                <div class="kanban-col" data-status="completed">
+                  <h3>Concluidas</h3>
+                  <div id="kanbanCompleted" class="kanban-list"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card glass wide">
+              <div class="card-header">
                 <h2>Backlog</h2>
                 <div class="pill">Ativo</div>
               </div>
@@ -132,6 +163,10 @@
                 <div id="barPending" class="bar pending"></div>
                 <div id="barDone" class="bar done"></div>
               </div>
+            </div>
+            <div class="card glass">
+              <h2>Grafico</h2>
+              <canvas id="tasksChart" height="180"></canvas>
             </div>
             <div class="card glass">
               <h2>Fluxo</h2>
@@ -180,6 +215,17 @@
           </div>
         </section>
       </main>
+    </div>
+
+    <div id="modal" class="modal">
+      <div class="modal-card glass">
+        <h3>Editar tarefa</h3>
+        <input id="modalTitle" class="input" type="text" />
+        <div class="row">
+          <button id="modalSaveBtn" class="btn primary">Salvar</button>
+          <button id="modalCancelBtn" class="btn ghost">Cancelar</button>
+        </div>
+      </div>
     </div>
 
     <div id="toast" class="toast"></div>

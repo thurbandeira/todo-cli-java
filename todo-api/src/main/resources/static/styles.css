@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;700&family=Playfair+Display:wght@500;700&display=swap");
+
 :root {
   --glass: rgba(255, 255, 255, 0.08);
   --glass-strong: rgba(255, 255, 255, 0.16);
@@ -18,7 +20,7 @@
 
 body {
   margin: 0;
-  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-family: "Manrope", "Segoe UI", sans-serif;
   background:
     radial-gradient(1200px 600px at 10% -10%, rgba(143, 211, 255, 0.25), transparent),
     radial-gradient(900px 500px at 80% 0%, rgba(231, 213, 255, 0.2), transparent),
@@ -26,6 +28,19 @@ body {
     var(--bg);
   color: var(--text);
   min-height: 100vh;
+}
+
+body.light {
+  --glass: rgba(255, 255, 255, 0.7);
+  --glass-strong: rgba(255, 255, 255, 0.9);
+  --stroke: rgba(0, 0, 0, 0.08);
+  --text: #0b0f19;
+  --muted: #4b5563;
+  --bg: #f3f4f6;
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(143, 211, 255, 0.3), transparent),
+    radial-gradient(900px 500px at 80% 0%, rgba(231, 213, 255, 0.2), transparent),
+    var(--bg);
 }
 
 .shell {
@@ -66,6 +81,7 @@ body {
 }
 
 .brand-title {
+  font-family: "Playfair Display", serif;
   font-weight: 700;
   margin: 0;
 }
@@ -102,6 +118,32 @@ body {
   gap: 12px;
 }
 
+.profile-card {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border-radius: 16px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+}
+
+.profile-name {
+  margin: 0;
+  font-weight: 600;
+}
+
+.profile-role {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
 .status-pill {
   background: rgba(143, 211, 255, 0.2);
   color: var(--accent);
@@ -113,6 +155,21 @@ body {
 .main {
   display: grid;
   gap: 20px;
+}
+
+.card,
+.topbar,
+.sidebar,
+.profile-card {
+  animation: floatIn 0.45s ease both;
+}
+
+.card:nth-child(2) {
+  animation-delay: 0.05s;
+}
+
+.card:nth-child(3) {
+  animation-delay: 0.1s;
 }
 
 .topbar {
@@ -193,6 +250,10 @@ body {
   padding: 10px 12px;
   border-radius: 12px;
   color: var(--text);
+}
+
+body.light .input {
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .btn {
@@ -287,6 +348,18 @@ body {
   grid-template-columns: 1fr auto;
   gap: 12px;
   align-items: center;
+}
+
+.list-empty {
+  text-align: center;
+  color: var(--muted);
+  padding: 20px 12px;
+  border-radius: 12px;
+  border: 1px dashed var(--stroke);
+}
+
+body.light .list-item {
+  background: rgba(255, 255, 255, 0.8);
 }
 
 .tag {
@@ -396,6 +469,109 @@ body {
   border-left: 4px solid var(--danger);
 }
 
+.kanban {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 14px;
+}
+
+.kanban-col {
+  background: rgba(12, 18, 30, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 12px;
+  border-radius: 16px;
+  min-height: 240px;
+}
+
+.kanban-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.kanban-card {
+  background: rgba(12, 18, 30, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 10px;
+  border-radius: 12px;
+  cursor: grab;
+}
+
+.kanban-card:active {
+  cursor: grabbing;
+}
+
+.activity {
+  list-style: none;
+  padding: 0;
+  margin: 14px 0 0;
+  display: grid;
+  gap: 10px;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(12, 18, 30, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+body.light .activity-item {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.activity-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.activity-dot.error {
+  background: var(--danger);
+}
+
+.activity-dot.success {
+  background: var(--success);
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 120;
+}
+
+.modal.show {
+  display: flex;
+}
+
+.modal-card {
+  border-radius: 20px;
+  padding: 20px;
+  width: min(420px, 90vw);
+}
+
+@keyframes floatIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (max-width: 980px) {
   .shell {
     grid-template-columns: 1fr;
@@ -408,6 +584,9 @@ body {
     align-items: flex-start;
   }
   .kpi {
+    grid-template-columns: 1fr;
+  }
+  .kanban {
     grid-template-columns: 1fr;
   }
 }

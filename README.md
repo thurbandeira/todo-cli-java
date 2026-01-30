@@ -43,6 +43,10 @@ http://localhost:8080/h2-console
 - Migracao automatica do CSV antigo (se existir)
 - Backup automatico do JSON (`.bak`)
 - API REST (Spring Boot) com validacao e endpoints de busca/limpeza
+- Dashboard web com tema "liquid glass" (aba Overview/Tasks/Insights/Settings)
+- Kanban com drag-and-drop para concluir tarefas
+- Notificacoes visuais (toast) e feed de atividade
+- Grafico e KPIs com Chart.js
 
 ## Exemplos (modo interativo)
 ```

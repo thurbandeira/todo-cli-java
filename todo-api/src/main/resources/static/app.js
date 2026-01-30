@@ -1,10 +1,14 @@
 const state = {
   baseUrl: localStorage.getItem("baseUrl") || "http://localhost:8080",
   token: localStorage.getItem("token") || "",
+  username: localStorage.getItem("username") || "",
   page: 0,
   size: 8,
   last: true,
   currentStatus: "all",
+  chart: null,
+  tasksCache: [],
+  activity: [],
 };
 
 const el = (id) => document.getElementById(id);
@@ -18,6 +22,7 @@ function toast(message, type = "success") {
   toastTimeout = setTimeout(() => {
     toastEl.className = "toast";
   }, 2500);
+  recordActivity(message, type);
 }
 
 function setAuthStatus() {
@@ -29,15 +34,31 @@ function setAuthStatus() {
     status.textContent = "Nao autenticado";
     status.style.color = "#b8c0d9";
   }
+  const openAuthBtn = el("openAuthBtn");
+  const logoutBtn = el("logoutBtn");
+  if (state.token) {
+    openAuthBtn.textContent = "Conta";
+    logoutBtn.disabled = false;
+  } else {
+    openAuthBtn.textContent = "Entrar";
+    logoutBtn.disabled = true;
+  }
 }
 
 function setActiveUser(name) {
   el("activeUser").textContent = name ? `Usuario: ${name}` : "Usuario: -";
+  el("profileName").textContent = name || "Visitante";
+  el("profileRole").textContent = name ? "Membro" : "Sem sessao";
 }
 
-function saveToken(token) {
+function saveToken(token, username = "") {
   state.token = token || "";
   localStorage.setItem("token", state.token);
+  if (username) {
+    state.username = username;
+    localStorage.setItem("username", username);
+  }
+  setActiveUser(state.username);
   setAuthStatus();
 }
 
@@ -47,6 +68,9 @@ function saveBaseUrl(url) {
 }
 
 async function request(path, options = {}) {
+  if (!state.token && path.startsWith("/api/tasks")) {
+    throw new Error("Faca login para acessar as tarefas.");
+  }
   const url = `${state.baseUrl}${path}`;
   const headers = options.headers || {};
   headers.Accept = "application/json";
@@ -76,6 +100,25 @@ async function request(path, options = {}) {
   return data;
 }
 
+function recordActivity(message, type) {
+  const list = el("activityFeed");
+  if (!list) return;
+  state.activity.unshift({ message, type, time: new Date() });
+  state.activity = state.activity.slice(0, 6);
+  list.innerHTML = "";
+  state.activity.forEach((entry) => {
+    const item = document.createElement("li");
+    item.className = "activity-item";
+    const dot = document.createElement("span");
+    dot.className = `activity-dot ${entry.type}`;
+    const text = document.createElement("span");
+    text.textContent = entry.message;
+    item.appendChild(dot);
+    item.appendChild(text);
+    list.appendChild(item);
+  });
+}
+
 async function refreshToken() {
   try {
     const response = await fetch(`${state.baseUrl}/api/auth/refresh`, {
@@ -84,7 +127,7 @@ async function refreshToken() {
     });
     if (!response.ok) return false;
     const data = await response.json();
-    saveToken(data.token);
+    saveToken(data.token, state.username);
     toast("Token renovado.");
     return true;
   } catch {
@@ -104,8 +147,7 @@ async function register() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password }),
   });
-  saveToken(data.token);
-  setActiveUser(username);
+  saveToken(data.token, username);
   toast("Conta criada e autenticado.");
   await listAll();
 }
@@ -122,18 +164,45 @@ async function login() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password }),
   });
-  saveToken(data.token);
-  setActiveUser(username);
+  saveToken(data.token, username);
   toast("Login realizado.");
   await listAll();
 }
 
 function logout() {
-  saveToken("");
-  setActiveUser("");
+  saveToken("", "");
   renderTasks([], "taskList");
   renderTasks([], "taskListTasks");
+  renderKanban([]);
   toast("Logout.");
+}
+
+function openModal(task) {
+  const modal = el("modal");
+  el("modalTitle").value = task.title;
+  modal.dataset.taskId = task.id;
+  modal.classList.add("show");
+}
+
+function closeModal() {
+  el("modal").classList.remove("show");
+}
+
+async function saveModal() {
+  const id = el("modal").dataset.taskId;
+  const title = el("modalTitle").value.trim();
+  if (!title) {
+    toast("Titulo invalido.", "error");
+    return;
+  }
+  await request(`/api/tasks/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title }),
+  });
+  closeModal();
+  toast(`Tarefa #${id} atualizada.`);
+  await listPaged(state.page, state.currentStatus);
 }
 
 async function addTask(inputId) {
@@ -152,26 +221,28 @@ async function addTask(inputId) {
   await listPaged(0, state.currentStatus);
 }
 
-async function editTask(id, currentTitle) {
-  const title = prompt("Editar titulo:", currentTitle);
-  if (title === null) return;
-  const trimmed = title.trim();
-  if (!trimmed) {
-    toast("Titulo invalido.", "error");
-    return;
-  }
-  await request(`/api/tasks/${id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ title: trimmed }),
-  });
-  toast(`Tarefa #${id} atualizada.`);
+async function completeTask(taskId) {
+  await request(`/api/tasks/${taskId}/complete`, { method: "POST" });
+  toast(`Tarefa #${taskId} concluida.`);
+  await listPaged(state.page, state.currentStatus);
+}
+
+async function removeTask(taskId) {
+  await request(`/api/tasks/${taskId}`, { method: "DELETE" });
+  toast(`Tarefa #${taskId} removida.`);
   await listPaged(state.page, state.currentStatus);
 }
 
 function renderTasks(tasks, listId) {
   const list = el(listId);
   list.innerHTML = "";
+  if (!tasks.length) {
+    const empty = document.createElement("li");
+    empty.className = "list-empty";
+    empty.textContent = "Nenhuma tarefa para exibir.";
+    list.appendChild(empty);
+    return;
+  }
   tasks.forEach((task) => {
     const li = document.createElement("li");
     li.className = "list-item";
@@ -191,33 +262,64 @@ function renderTasks(tasks, listId) {
       const doneBtn = document.createElement("button");
       doneBtn.className = "btn secondary";
       doneBtn.textContent = "Concluir";
-      doneBtn.onclick = async () => {
-        await request(`/api/tasks/${task.id}/complete`, { method: "POST" });
-        toast(`Tarefa #${task.id} concluida.`);
-        await listPaged(state.page, state.currentStatus);
-      };
+      doneBtn.onclick = () => completeTask(task.id).catch((e) => toast(e.message, "error"));
       actions.appendChild(doneBtn);
     }
 
     const editBtn = document.createElement("button");
     editBtn.className = "btn ghost";
     editBtn.textContent = "Editar";
-    editBtn.onclick = () => editTask(task.id, task.title);
+    editBtn.onclick = () => openModal(task);
     actions.appendChild(editBtn);
 
     const removeBtn = document.createElement("button");
     removeBtn.className = "btn danger";
     removeBtn.textContent = "Remover";
-    removeBtn.onclick = async () => {
-      await request(`/api/tasks/${task.id}`, { method: "DELETE" });
-      toast(`Tarefa #${task.id} removida.`);
-      await listPaged(state.page, state.currentStatus);
-    };
+    removeBtn.onclick = () => removeTask(task.id).catch((e) => toast(e.message, "error"));
     actions.appendChild(removeBtn);
 
     li.appendChild(info);
     li.appendChild(actions);
     list.appendChild(li);
+  });
+}
+
+function renderKanban(tasks) {
+  const pending = el("kanbanPending");
+  const completed = el("kanbanCompleted");
+  pending.innerHTML = "";
+  completed.innerHTML = "";
+  tasks.forEach((task) => {
+    const card = document.createElement("div");
+    card.className = "kanban-card";
+    card.draggable = true;
+    card.dataset.id = task.id;
+    card.dataset.completed = task.completed;
+    card.textContent = task.title;
+    card.addEventListener("dragstart", (event) => {
+      event.dataTransfer.setData("text/plain", JSON.stringify(task));
+    });
+    if (task.completed) {
+      completed.appendChild(card);
+    } else {
+      pending.appendChild(card);
+    }
+  });
+}
+
+function setupKanbanDrop() {
+  document.querySelectorAll(".kanban-col").forEach((col) => {
+    col.addEventListener("dragover", (event) => event.preventDefault());
+    col.addEventListener("drop", async (event) => {
+      event.preventDefault();
+      const data = JSON.parse(event.dataTransfer.getData("text/plain"));
+      if (col.dataset.status === "completed" && !data.completed) {
+        await completeTask(data.id).catch((e) => toast(e.message, "error"));
+      }
+      if (col.dataset.status === "pending" && data.completed) {
+        toast("Nao e possivel reabrir via drag.", "error");
+      }
+    });
   });
 }
 
@@ -232,6 +334,33 @@ async function updateSummary() {
   el("progressBar").style.width = `${rate}%`;
   el("barPending").style.setProperty("--scale", data.total ? data.pending / data.total : 0.1);
   el("barDone").style.setProperty("--scale", data.total ? data.done / data.total : 0.1);
+  updateChart(data.pending, data.done);
+}
+
+function updateChart(pending, done) {
+  const ctx = el("tasksChart");
+  if (!ctx) return;
+  if (!state.chart) {
+    state.chart = new Chart(ctx, {
+      type: "doughnut",
+      data: {
+        labels: ["Pendentes", "Concluidas"],
+        datasets: [
+          {
+            data: [pending, done],
+            backgroundColor: ["#ffd166", "#6ee7b7"],
+            borderWidth: 0,
+          },
+        ],
+      },
+      options: {
+        plugins: { legend: { display: false } },
+      },
+    });
+  } else {
+    state.chart.data.datasets[0].data = [pending, done];
+    state.chart.update();
+  }
 }
 
 async function listAll() {
@@ -258,8 +387,10 @@ async function searchTasks() {
   const data = await request(
     `/api/tasks/search/page?keyword=${encodeURIComponent(keyword)}&page=0&size=${state.size}&sort=id,asc`
   );
+  state.tasksCache = data.items;
   renderTasks(data.items, "taskList");
   renderTasks(data.items, "taskListTasks");
+  renderKanban(data.items);
   state.page = data.page;
   state.last = data.last;
   updatePager();
@@ -267,8 +398,8 @@ async function searchTasks() {
 }
 
 async function clearCompleted() {
-  const data = await request("/api/tasks/clear-completed", { method: "POST" });
-  el("summary").textContent = `Total: ${data.total} | Pendentes: ${data.pending} | Concluidas: ${data.done}`;
+  await request("/api/tasks/clear-completed", { method: "POST" });
+  toast("Concluidas removidas.");
   await listPaged(0, state.currentStatus);
 }
 
@@ -276,8 +407,10 @@ async function listPaged(page, status = "all") {
   const data = await request(
     `/api/tasks/page?status=${status}&page=${page}&size=${state.size}&sort=completed,asc;id,asc`
   );
+  state.tasksCache = data.items;
   renderTasks(data.items, "taskList");
   renderTasks(data.items, "taskListTasks");
+  renderKanban(data.items);
   state.page = data.page;
   state.last = data.last;
   updatePager();
@@ -305,10 +438,36 @@ function initTabs() {
   });
 }
 
+function toggleTheme() {
+  document.body.classList.toggle("light");
+  const mode = document.body.classList.contains("light") ? "light" : "dark";
+  localStorage.setItem("theme", mode);
+}
+
+function loadTheme() {
+  const mode = localStorage.getItem("theme") || "dark";
+  if (mode === "light") {
+    document.body.classList.add("light");
+  }
+}
+
+function initModal() {
+  el("modalCancelBtn").onclick = closeModal;
+  el("modalSaveBtn").onclick = () => saveModal().catch((e) => toast(e.message, "error"));
+  el("modal").addEventListener("click", (event) => {
+    if (event.target.id === "modal") closeModal();
+  });
+}
+
 function init() {
   el("baseUrl").value = state.baseUrl;
   setAuthStatus();
+  setActiveUser(state.username);
+  loadTheme();
   initTabs();
+  setupKanbanDrop();
+  initModal();
+  recordActivity("Painel carregado.", "success");
 
   el("saveBaseUrl").onclick = () => {
     saveBaseUrl(el("baseUrl").value.trim());
@@ -323,6 +482,7 @@ function init() {
   };
   el("refreshBtn").onclick = () => listAll().catch((e) => toast(e.message, "error"));
   el("refreshTokenBtn").onclick = () => refreshToken().catch(() => {});
+  el("themeToggleBtn").onclick = toggleTheme;
 
   el("addBtn").onclick = () => addTask("newTitle").catch((e) => toast(e.message, "error"));
   el("quickAddBtn").onclick = () => addTask("quickTitle").catch((e) => toast(e.message, "error"));
