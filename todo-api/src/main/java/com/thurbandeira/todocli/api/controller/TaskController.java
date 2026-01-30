@@ -30,7 +30,7 @@ public class TaskController {
 
     @GetMapping
     public List<TaskResponse> list(@AuthenticationPrincipal UserDetails user,
-                                   @RequestParam(defaultValue = "all") String status) {
+                                   @RequestParam(name = "status", defaultValue = "all") String status) {
         return switch (normalizeStatus(status)) {
             case "all" -> mapTasks(service.listAll(user.getUsername()));
             case "pending" -> mapTasks(service.listByStatus(user.getUsername(), false));
@@ -47,7 +47,7 @@ public class TaskController {
 
     @GetMapping("/search")
     public List<TaskResponse> search(@AuthenticationPrincipal UserDetails user,
-                                     @RequestParam @NotBlank(message = "Keyword obrigatoria.") String keyword) {
+                                     @RequestParam(name = "keyword") @NotBlank(message = "Keyword obrigatoria.") String keyword) {
         return mapTasks(service.search(user.getUsername(), keyword));
     }
 
