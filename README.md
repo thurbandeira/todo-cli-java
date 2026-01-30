@@ -2,6 +2,19 @@
 
 Um gerenciador de tarefas em linha de comando (CLI) feito em Java para aprendizado e portfólio.
 
+## Start here (passo rapido)
+1) Suba a API:
+```bash
+mvn -pl todo-api spring-boot:run
+```
+
+2) Abra o dashboard:
+```
+http://localhost:8080
+```
+
+3) Crie conta e teste tudo pela UI.
+
 ## Requisitos
 - Java 21+
 - Maven 3.9+
@@ -199,6 +212,16 @@ http://localhost:8080
 
 3) Use o formulario para registrar/login e testar as rotas.
    A lista usa paginacao e suporta filtros por status.
+
+## Checklist visual (UI)
+- Registrar usuario e fazer login
+- Criar tarefa (Overview ou Tasks)
+- Editar e concluir tarefas
+- Arrastar tarefa no Kanban
+- Usar busca por palavra-chave
+- Testar filtros (pendentes/concluidas)
+- Confirmar KPIs e grafico atualizando
+- Sair e validar bloqueio de rotas autenticadas
 
 ## Roadmap (curto)
 - CLI mais rica (flags)
