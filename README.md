@@ -147,24 +147,18 @@ Opcional:
 .\scripts\test-api.ps1 -BaseUrl http://localhost:8080
 ```
 
-## Front-end basico (sem build)
+## Front-end basico (sem build e sem Python/Node)
 1) Suba a API:
 ```bash
 mvn -pl todo-api spring-boot:run
 ```
 
-2) Em outro terminal, suba um servidor estatico:
-```bash
-cd todo-web
-python -m http.server 5173
+2) Abra no navegador:
+```
+http://localhost:8080
 ```
 
-3) Abra no navegador:
-```
-http://localhost:5173
-```
-
-4) Use o formulario para registrar/login e testar as rotas.
+3) Use o formulario para registrar/login e testar as rotas.
 
 ## Roadmap (curto)
 - CLI mais rica (flags)
