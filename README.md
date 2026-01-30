@@ -26,6 +26,11 @@ mvn -pl todo-api spring-boot:run
 http://localhost:8080/swagger-ui
 ```
 
+### H2 Console (dev)
+```
+http://localhost:8080/h2-console
+```
+
 ## Funcionalidades atuais
 - Adicionar tarefa
 - Listar tarefas (com resumo)
@@ -76,6 +81,10 @@ src/main/java/com/thurbandeira/todocli
 
 ## API (exemplos)
 ```
+POST /api/auth/register
+POST /api/auth/login
+
+Todos os endpoints abaixo exigem Authorization: Bearer <TOKEN>
 GET  /api/tasks
 GET  /api/tasks?status=pending|completed|all
 GET  /api/tasks/summary
@@ -86,6 +95,41 @@ POST /api/tasks/{id}/complete
 DELETE /api/tasks/{id}
 POST /api/tasks/clear-completed
 ```
+
+## Autenticacao (JWT)
+1) Registrar:
+```bash
+curl -X POST http://localhost:8080/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d "{\"username\":\"user\",\"password\":\"secret123\"}"
+```
+
+2) Login:
+```bash
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d "{\"username\":\"user\",\"password\":\"secret123\"}"
+```
+
+3) Usar o token:
+```bash
+curl http://localhost:8080/api/tasks \
+  -H "Authorization: Bearer <TOKEN>"
+```
+
+## Banco de dados
+Por padrao, a API usa H2 (arquivo local em `./data/todo-db`).
+
+Para PostgreSQL, use o profile:
+```bash
+mvn -pl todo-api spring-boot:run -Dspring-boot.run.profiles=postgres
+```
+
+E configure as variaveis de ambiente:
+- `JDBC_DATABASE_URL`
+- `JDBC_DATABASE_USERNAME`
+- `JDBC_DATABASE_PASSWORD`
+- `JWT_SECRET`
 
 ## Testes
 ```bash

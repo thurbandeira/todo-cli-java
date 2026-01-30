@@ -1,7 +1,7 @@
 package com.thurbandeira.todocli.api.dto;
 
 public record TaskResponse(
-        int id,
+        long id,
         String title,
         boolean completed
 ) {

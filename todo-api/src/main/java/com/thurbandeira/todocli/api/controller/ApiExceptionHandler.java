@@ -1,5 +1,7 @@
 package com.thurbandeira.todocli.api.controller;
 
+import com.thurbandeira.todocli.api.exception.NotFoundException;
+import com.thurbandeira.todocli.api.exception.ValidationException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -23,6 +25,22 @@ public class ApiExceptionHandler {
         ProblemDetail detail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
         detail.setTitle("Erro de validacao");
         detail.setDetail("Parametros invalidos na requisicao.");
+        return detail;
+    }
+
+    @ExceptionHandler(ValidationException.class)
+    public ProblemDetail handleValidationException(ValidationException ex) {
+        ProblemDetail detail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        detail.setTitle("Erro de validacao");
+        detail.setDetail(ex.getMessage());
+        return detail;
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    public ProblemDetail handleNotFound(NotFoundException ex) {
+        ProblemDetail detail = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+        detail.setTitle("Nao encontrado");
+        detail.setDetail(ex.getMessage());
         return detail;
     }
 

@@ -4,16 +4,16 @@ import com.thurbandeira.todocli.api.dto.SummaryResponse;
 import com.thurbandeira.todocli.api.dto.TaskRequest;
 import com.thurbandeira.todocli.api.dto.TaskResponse;
 import com.thurbandeira.todocli.api.dto.TaskUpdateRequest;
-import com.thurbandeira.todocli.api.service.TaskManager;
-import com.thurbandeira.todocli.model.Task;
-import com.thurbandeira.todocli.service.TaskService;
+import com.thurbandeira.todocli.api.domain.TaskEntity;
+import com.thurbandeira.todocli.api.service.TaskQueryService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -22,81 +22,75 @@ import java.util.List;
 @Validated
 public class TaskController {
 
-    private final TaskManager manager;
+    private final TaskQueryService service;
 
-    public TaskController(TaskManager manager) {
-        this.manager = manager;
+    public TaskController(TaskQueryService service) {
+        this.service = service;
     }
 
     @GetMapping
-    public List<TaskResponse> list(@RequestParam(defaultValue = "all") String status) {
+    public List<TaskResponse> list(@AuthenticationPrincipal UserDetails user,
+                                   @RequestParam(defaultValue = "all") String status) {
         return switch (normalizeStatus(status)) {
-            case "all" -> mapTasks(manager.listAll());
-            case "pending" -> mapTasks(manager.listByStatus(false));
-            case "completed" -> mapTasks(manager.listByStatus(true));
-            default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status invalido.");
+            case "all" -> mapTasks(service.listAll(user.getUsername()));
+            case "pending" -> mapTasks(service.listByStatus(user.getUsername(), false));
+            case "completed" -> mapTasks(service.listByStatus(user.getUsername(), true));
+            default -> throw new IllegalArgumentException("Status invalido.");
         };
     }
 
     @GetMapping("/summary")
-    public SummaryResponse summary() {
-        TaskService.Summary summary = manager.summary();
+    public SummaryResponse summary(@AuthenticationPrincipal UserDetails user) {
+        TaskQueryService.Summary summary = service.summary(user.getUsername());
         return new SummaryResponse(summary.total(), summary.pending(), summary.done());
     }
 
     @GetMapping("/search")
-    public List<TaskResponse> search(@RequestParam @NotBlank(message = "Keyword obrigatoria.") String keyword) {
-        return mapTasks(manager.search(keyword));
+    public List<TaskResponse> search(@AuthenticationPrincipal UserDetails user,
+                                     @RequestParam @NotBlank(message = "Keyword obrigatoria.") String keyword) {
+        return mapTasks(service.search(user.getUsername(), keyword));
     }
 
     @PostMapping
-    public ResponseEntity<TaskResponse> create(@Valid @RequestBody TaskRequest request) {
-        Task task = manager.addTask(request.title());
+    public ResponseEntity<TaskResponse> create(@AuthenticationPrincipal UserDetails user,
+                                               @Valid @RequestBody TaskRequest request) {
+        TaskEntity task = service.add(user.getUsername(), request.title());
         return ResponseEntity.status(HttpStatus.CREATED).body(mapTask(task));
     }
 
     @PutMapping("/{id}")
-    public TaskResponse update(@PathVariable int id, @Valid @RequestBody TaskUpdateRequest request) {
-        TaskService.UpdateResult result = manager.updateTitle(id, request.title());
-        if (result == TaskService.UpdateResult.NOT_FOUND) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Tarefa nao encontrada.");
-        }
-        if (result == TaskService.UpdateResult.INVALID_TITLE) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Titulo invalido.");
-        }
-        Task updated = manager.getById(id);
+    public TaskResponse update(@AuthenticationPrincipal UserDetails user,
+                               @PathVariable long id,
+                               @Valid @RequestBody TaskUpdateRequest request) {
+        TaskEntity updated = service.update(user.getUsername(), id, request.title());
         return mapTask(updated);
     }
 
     @PostMapping("/{id}/complete")
-    public TaskResponse complete(@PathVariable int id) {
-        TaskService.MarkResult result = manager.markCompleted(id);
-        if (result == TaskService.MarkResult.NOT_FOUND) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Tarefa nao encontrada.");
-        }
-        Task updated = manager.getById(id);
+    public TaskResponse complete(@AuthenticationPrincipal UserDetails user,
+                                 @PathVariable long id) {
+        TaskEntity updated = service.complete(user.getUsername(), id);
         return mapTask(updated);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> remove(@PathVariable int id) {
-        if (!manager.remove(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Tarefa nao encontrada.");
-        }
+    public ResponseEntity<Void> remove(@AuthenticationPrincipal UserDetails user,
+                                       @PathVariable long id) {
+        service.remove(user.getUsername(), id);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/clear-completed")
-    public SummaryResponse clearCompleted() {
-        TaskService.Summary summary = manager.clearCompleted();
+    public SummaryResponse clearCompleted(@AuthenticationPrincipal UserDetails user) {
+        TaskQueryService.Summary summary = service.clearCompleted(user.getUsername());
         return new SummaryResponse(summary.total(), summary.pending(), summary.done());
     }
 
-    private List<TaskResponse> mapTasks(List<Task> tasks) {
+    private List<TaskResponse> mapTasks(List<TaskEntity> tasks) {
         return tasks.stream().map(this::mapTask).toList();
     }
 
-    private TaskResponse mapTask(Task task) {
+    private TaskResponse mapTask(TaskEntity task) {
         return new TaskResponse(task.getId(), task.getTitle(), task.isCompleted());
     }
 
