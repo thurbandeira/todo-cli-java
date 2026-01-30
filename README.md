@@ -6,10 +6,19 @@ Um gerenciador de tarefas em linha de comando (CLI) feito em Java para aprendiza
 - Java 21+
 - Maven 3.9+
 
-## Build e execução
+## Build e execução (multi-módulo)
 ```bash
 mvn package
-java -jar target/todo-cli.jar
+```
+
+### CLI
+```bash
+java -jar todo-cli/target/todo-cli.jar
+```
+
+### API
+```bash
+mvn -pl todo-api spring-boot:run
 ```
 
 ## Funcionalidades atuais
@@ -23,6 +32,7 @@ java -jar target/todo-cli.jar
 - Persistência em JSON (`data/tasks.json`)
 - Migracao automatica do CSV antigo (se existir)
 - Backup automatico do JSON (`.bak`)
+- API REST (Spring Boot) com validacao e endpoints de busca/limpeza
 
 ## Exemplos (modo interativo)
 ```
@@ -57,6 +67,19 @@ src/main/java/com/thurbandeira/todocli
   model/      -> entidades do domínio
   service/    -> regras de negócio
   storage/    -> persistência
+```
+
+## API (exemplos)
+```
+GET  /api/tasks
+GET  /api/tasks?status=pending|completed|all
+GET  /api/tasks/summary
+GET  /api/tasks/search?keyword=...
+POST /api/tasks
+PUT  /api/tasks/{id}
+POST /api/tasks/{id}/complete
+DELETE /api/tasks/{id}
+POST /api/tasks/clear-completed
 ```
 
 ## Testes
