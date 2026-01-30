@@ -1,0 +1,52 @@
+@baseUrl = http://localhost:8080
+@token = {{auth.response.body.token}}
+
+### Register
+# @name auth
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "user{{timestamp}}",
+  "password": "secret123"
+}
+
+### Login
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "user{{timestamp}}",
+  "password": "secret123"
+}
+
+### List tasks
+GET {{baseUrl}}/api/tasks
+Authorization: Bearer {{token}}
+
+### Create task
+POST {{baseUrl}}/api/tasks
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "Comprar leite"
+}
+
+### Complete task
+POST {{baseUrl}}/api/tasks/1/complete
+Authorization: Bearer {{token}}
+
+### Search tasks
+GET {{baseUrl}}/api/tasks/search?keyword=leite
+Authorization: Bearer {{token}}
+
+### Summary
+GET {{baseUrl}}/api/tasks/summary
+Authorization: Bearer {{token}}
+
+### Clear completed
+POST {{baseUrl}}/api/tasks/clear-completed
+Authorization: Bearer {{token}}
+
