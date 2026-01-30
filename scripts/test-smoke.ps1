@@ -89,10 +89,10 @@ Assert-True ($paged.items.Count -ge 1) "Paginacao nao retornou itens."
 $searchPaged = Invoke-Api -Method "GET" -Url "$BaseUrl/api/tasks/search/page?keyword=leite&page=0&size=5&sort=id,asc" -Headers $authHeaders
 Assert-True ($searchPaged.items.Count -ge 1) "Busca paginada falhou."
 
+Invoke-Api -Method "DELETE" -Url "$BaseUrl/api/tasks/$($task.id)" -Headers $authHeaders | Out-Null
+
 $cleared = Invoke-Api -Method "POST" -Url "$BaseUrl/api/tasks/clear-completed" -Headers $authHeaders
 Assert-True ($cleared.done -eq 0) "Limpeza de concluidas falhou."
-
-Invoke-Api -Method "DELETE" -Url "$BaseUrl/api/tasks/$($task.id)" -Headers $authHeaders | Out-Null
 
 Write-Host "== Smoke Test: Refresh token =="
 $refresh = Invoke-Api -Method "POST" -Url "$BaseUrl/api/auth/refresh" -Headers $authHeaders
