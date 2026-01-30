@@ -35,11 +35,15 @@ public class Main {
                     break;
 
                 case 3:
-                    System.out.println("Marcar tarefa (em breve)");
+                    System.out.print("Digite o ID da tarefa para concluir: ");
+                    int idDone = scanner.nextInt();
+                    taskService.markTaskAsCompleted(idDone);
                     break;
 
                 case 4:
-                    System.out.println("Remover tarefa (em breve)");
+                    System.out.print("Digite o ID da tarefa para remover: ");
+                    int idRemove = scanner.nextInt();
+                    taskService.removeTask(idRemove);
                     break;
 
                 case 0:

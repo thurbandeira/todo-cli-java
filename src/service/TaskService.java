@@ -33,4 +33,43 @@ public class TaskService {
             );
         }
     }
+
+    public boolean markTaskAsCompleted(int id) {
+        Task task = findById(id);
+        if (task == null) {
+            System.out.println("Não existe tarefa com esse ID.");
+            return false;
+        }
+
+        if (task.isCompleted()) {
+            System.out.println("Essa tarefa já está concluída.");
+            return false;
+        }
+
+        task.markAsCompleted();
+        System.out.println("Tarefa marcada como concluída!");
+        return true;
+    }
+
+    public boolean removeTask(int id) {
+        Task task = findById(id);
+        if (task == null) {
+            System.out.println("Não existe tarefa com esse ID.");
+            return false;
+        }
+
+        tasks.remove(task);
+        System.out.println("Tarefa removida com sucesso!");
+        return true;
+    }
+
+    private Task findById(int id) {
+        for (Task task : tasks) {
+            if (task.getId() == id) {
+                return task;
+            }
+        }
+        return null;
+    }
+
 }
