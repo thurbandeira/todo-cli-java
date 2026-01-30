@@ -20,8 +20,17 @@ public class CliApp {
         this.storage = new Storage("data/tasks.json");
     }
 
-    public void run() {
+    public void run(String[] args) {
         loadTasks();
+        if (args != null && args.length > 0) {
+            handleArgs(args);
+            return;
+        }
+
+        runInteractive();
+    }
+
+    private void runInteractive() {
         printBanner();
         printLoadedInfo();
 
@@ -66,6 +75,51 @@ public class CliApp {
         scanner.close();
     }
 
+    private void handleArgs(String[] args) {
+        String command = args[0].toLowerCase();
+        switch (command) {
+            case "help", "--help", "-h" -> printHelp();
+            case "add" -> {
+                String title = joinArgs(args, 1);
+                if (title.isBlank()) {
+                    System.out.println("Titulo nao pode ser vazio.");
+                    return;
+                }
+                taskService.addTask(title);
+                storage.save(taskService.getTasks());
+                System.out.println("Tarefa adicionada com sucesso!");
+            }
+            case "list" -> printTasks(taskService.listTasksSorted());
+            case "done" -> {
+                Integer id = parseIdArg(args, 1);
+                if (id == null) return;
+                TaskService.MarkResult result = taskService.markTaskAsCompleted(id);
+                switch (result) {
+                    case MARKED -> {
+                        storage.save(taskService.getTasks());
+                        System.out.println("Tarefa marcada como concluida!");
+                    }
+                    case ALREADY_COMPLETED -> System.out.println("Essa tarefa ja esta concluida.");
+                    case NOT_FOUND -> System.out.println("Nao existe tarefa com esse ID.");
+                }
+            }
+            case "remove" -> {
+                Integer id = parseIdArg(args, 1);
+                if (id == null) return;
+                if (taskService.removeTask(id)) {
+                    storage.save(taskService.getTasks());
+                    System.out.println("Tarefa removida com sucesso!");
+                } else {
+                    System.out.println("Nao existe tarefa com esse ID.");
+                }
+            }
+            default -> {
+                System.out.println("Comando invalido.");
+                printHelp();
+            }
+        }
+    }
+
     private void loadTasks() {
         List<Task> loadedTasks = storage.load();
         taskService.setTasks(loadedTasks);
@@ -96,6 +150,43 @@ public class CliApp {
         System.out.println("=================================");
         System.out.println("     GERENCIADOR DE TAREFAS CLI   ");
         System.out.println("=================================");
+    }
+
+    private void printHelp() {
+        System.out.println("Uso:");
+        System.out.println("  todo-cli add \"titulo da tarefa\"");
+        System.out.println("  todo-cli list");
+        System.out.println("  todo-cli done <id>");
+        System.out.println("  todo-cli remove <id>");
+        System.out.println("  todo-cli help");
+    }
+
+    private Integer parseIdArg(String[] args, int index) {
+        if (args.length <= index) {
+            System.out.println("Informe o ID.");
+            return null;
+        }
+        try {
+            int id = Integer.parseInt(args[index]);
+            if (id <= 0) {
+                System.out.println("ID deve ser maior que zero.");
+                return null;
+            }
+            return id;
+        } catch (NumberFormatException e) {
+            System.out.println("ID invalido.");
+            return null;
+        }
+    }
+
+    private String joinArgs(String[] args, int start) {
+        if (args.length <= start) return "";
+        StringBuilder sb = new StringBuilder();
+        for (int i = start; i < args.length; i++) {
+            if (i > start) sb.append(' ');
+            sb.append(args[i]);
+        }
+        return sb.toString().trim();
     }
 
     private void printTasks(List<Task> tasks) {

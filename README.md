@@ -29,6 +29,14 @@ java -jar target/todo-cli.jar
 0 - Sair
 ```
 
+## Exemplos (comandos)
+```bash
+java -jar target/todo-cli.jar add "Comprar leite"
+java -jar target/todo-cli.jar list
+java -jar target/todo-cli.jar done 1
+java -jar target/todo-cli.jar remove 1
+```
+
 ## Estrutura
 ```
 src/main/java/com/thurbandeira/todocli
@@ -48,4 +56,3 @@ mvn test
 - Editar tarefa
 - Filtros e busca
 - Migração automática CSV -> JSON
-
