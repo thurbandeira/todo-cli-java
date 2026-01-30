@@ -1,7 +1,7 @@
 package service;
 
 import model.Task;
-
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -70,6 +70,18 @@ public class TaskService {
             }
         }
         return null;
+    }
+
+    public List<Task> getTasks() {
+        return tasks;
+    }
+
+    public void setNextId(int nextId) {
+        this.nextId = nextId;
+    }
+
+    public void setTasks(List<Task> loadedTasks) {
+        this.tasks = loadedTasks;
     }
 
 }
