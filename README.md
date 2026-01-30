@@ -136,6 +136,17 @@ E configure as variaveis de ambiente:
 mvn test
 ```
 
+## Script automatico de teste (Windows/PowerShell)
+Com a API rodando, execute:
+```powershell
+.\scripts\test-api.ps1
+```
+
+Opcional:
+```powershell
+.\scripts\test-api.ps1 -BaseUrl http://localhost:8080
+```
+
 ## Roadmap (curto)
 - CLI mais rica (flags)
 - Tests de integracao para a CLI
