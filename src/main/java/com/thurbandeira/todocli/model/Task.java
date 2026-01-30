@@ -1,4 +1,4 @@
-package model;
+package com.thurbandeira.todocli.model;
 
 public class Task {
 
