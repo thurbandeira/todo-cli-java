@@ -24,6 +24,8 @@ public class Main {
         }
         taskService.setNextId(maxId + 1);
 
+        printBanner();
+
         if (!loadedTasks.isEmpty()) {
             System.out.println("Tarefas carregadas: " + loadedTasks.size());
         }
@@ -73,6 +75,13 @@ public class Main {
         System.out.println("4 - Remover tarefa");
         System.out.println("0 - Sair");
     }
+
+    private static void printBanner() {
+        System.out.println("=================================");
+        System.out.println("     GERENCIADOR DE TAREFAS CLI   ");
+        System.out.println("=================================");
+    }
+
 
     // Lê um inteiro sem quebrar o programa (aceita só números)
     private static int readInt(Scanner scanner, String prompt) {

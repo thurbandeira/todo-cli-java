@@ -26,12 +26,19 @@ public class TaskService {
 
         System.out.println("\n--- LISTA DE TAREFAS ---");
 
-        for (Task task : tasks) {
-            String status = task.isCompleted() ? "[X]" : "[ ]";
-            System.out.println(
-                    status + " " + task.getId() + " - " + task.getTitle()
-            );
-        }
+        tasks.stream()
+                .sorted((a, b) -> Boolean.compare(a.isCompleted(), b.isCompleted()))
+                .forEach(task -> {
+
+                    String status = task.isCompleted() ? "[X]" : "[ ]";
+                    String doneText = task.isCompleted() ? " ✔ - Concluída" : "";
+
+                    System.out.println(
+                            status + " " + task.getId() + " - " + task.getTitle() + doneText
+                    );
+                });
+
+        showSummary();
     }
 
     public boolean markTaskAsCompleted(int id) {
@@ -83,5 +90,53 @@ public class TaskService {
     public void setTasks(List<Task> loadedTasks) {
         this.tasks = loadedTasks;
     }
+
+    public int clearCompleted() {
+        int before = tasks.size();
+        tasks.removeIf(Task::isCompleted);
+        int removed = before - tasks.size();
+
+        if (removed == 0) {
+            System.out.println("Nenhuma tarefa concluída para remover.");
+        } else {
+            System.out.println("Removidas " + removed + " tarefa(s) concluída(s).");
+        }
+        return removed;
+    }
+
+    public void searchByKeyword(String keyword) {
+        if (tasks.isEmpty()) {
+            System.out.println("Nenhuma tarefa cadastrada.");
+            return;
+        }
+
+        String k = keyword.toLowerCase();
+        boolean found = false;
+
+        System.out.println("\n--- RESULTADO DA BUSCA ---");
+        for (Task task : tasks) {
+            if (task.getTitle().toLowerCase().contains(k)) {
+                String status = task.isCompleted() ? "[X]" : "[ ]";
+                System.out.println(status + " " + task.getId() + " - " + task.getTitle());
+                found = true;
+            }
+        }
+
+        if (!found) {
+            System.out.println("Nenhuma tarefa encontrada para: " + keyword);
+        }
+    }
+
+    public void showSummary() {
+        int done = 0;
+        for (Task task : tasks) {
+            if (task.isCompleted()) done++;
+        }
+        int total = tasks.size();
+        int pending = total - done;
+
+        System.out.println("\nResumo: " + total + " total | " + pending + " pendentes | " + done + " concluídas");
+    }
+
 
 }
