@@ -181,6 +181,11 @@ Opcional:
 .\scripts\test-api.ps1 -BaseUrl http://localhost:8080
 ```
 
+Smoke test completo:
+```powershell
+.\scripts\test-smoke.ps1
+```
+
 ## Front-end basico (sem build e sem Python/Node)
 1) Suba a API:
 ```bash
