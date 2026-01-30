@@ -1,6 +1,10 @@
 const state = {
   baseUrl: localStorage.getItem("baseUrl") || "http://localhost:8080",
   token: localStorage.getItem("token") || "",
+  page: 0,
+  size: 10,
+  last: true,
+  currentStatus: "all",
 };
 
 const el = (id) => document.getElementById(id);
@@ -37,10 +41,7 @@ async function request(path, options = {}) {
   if (state.token) {
     headers.Authorization = `Bearer ${state.token}`;
   }
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
+  const response = await fetch(url, { ...options, headers });
   const text = await response.text();
   let data = null;
   if (text) {
@@ -48,6 +49,12 @@ async function request(path, options = {}) {
       data = JSON.parse(text);
     } catch {
       data = text;
+    }
+  }
+  if (response.status === 401 && state.token) {
+    const refreshed = await refreshToken();
+    if (refreshed) {
+      return request(path, options);
     }
   }
   if (!response.ok) {
@@ -94,6 +101,24 @@ function logout() {
   log("Logout.");
 }
 
+async function refreshToken() {
+  try {
+    const response = await fetch(`${state.baseUrl}/api/auth/refresh`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${state.token}` },
+    });
+    if (!response.ok) {
+      return false;
+    }
+    const data = await response.json();
+    saveToken(data.token);
+    log("Token renovado.");
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function addTask() {
   const title = el("newTitle").value.trim();
   if (!title) {
@@ -107,7 +132,7 @@ async function addTask() {
   });
   el("newTitle").value = "";
   log(`Tarefa criada (#${data.id}).`);
-  await listAll();
+  await listPaged(0);
 }
 
 function renderTasks(tasks) {
@@ -162,21 +187,18 @@ async function updateSummary() {
 }
 
 async function listAll() {
-  const data = await request("/api/tasks");
-  renderTasks(data);
-  await updateSummary();
+  state.currentStatus = "all";
+  await listPaged(0, state.currentStatus);
 }
 
 async function listPending() {
-  const data = await request("/api/tasks?status=pending");
-  renderTasks(data);
-  await updateSummary();
+  state.currentStatus = "pending";
+  await listPaged(0, state.currentStatus);
 }
 
 async function listCompleted() {
-  const data = await request("/api/tasks?status=completed");
-  renderTasks(data);
-  await updateSummary();
+  state.currentStatus = "completed";
+  await listPaged(0, state.currentStatus);
 }
 
 async function searchTasks() {
@@ -185,15 +207,37 @@ async function searchTasks() {
     log("Informe a palavra-chave.");
     return;
   }
-  const data = await request(`/api/tasks/search?keyword=${encodeURIComponent(keyword)}`);
-  renderTasks(data);
+  const data = await request(
+    `/api/tasks/search/page?keyword=${encodeURIComponent(keyword)}&page=0&size=${state.size}&sort=id,asc`
+  );
+  renderTasks(data.items);
+  state.page = data.page;
+  state.last = data.last;
+  updatePager();
   await updateSummary();
 }
 
 async function clearCompleted() {
   const data = await request("/api/tasks/clear-completed", { method: "POST" });
   el("summary").textContent = `Total: ${data.total} | Pendentes: ${data.pending} | Concluidas: ${data.done}`;
-  await listAll();
+  await listPaged(0);
+}
+
+async function listPaged(page, status = "all") {
+  const data = await request(
+    `/api/tasks/page?status=${status}&page=${page}&size=${state.size}&sort=completed,asc;id,asc`
+  );
+  renderTasks(data.items);
+  state.page = data.page;
+  state.last = data.last;
+  updatePager();
+  await updateSummary();
+}
+
+function updatePager() {
+  el("pageInfo").textContent = `Pagina ${state.page + 1}`;
+  el("prevPageBtn").disabled = state.page <= 0;
+  el("nextPageBtn").disabled = state.last;
 }
 
 function init() {
@@ -215,6 +259,10 @@ function init() {
   el("listCompletedBtn").onclick = () => listCompleted().catch((e) => log(e.message));
   el("searchBtn").onclick = () => searchTasks().catch((e) => log(e.message));
   el("clearCompletedBtn").onclick = () => clearCompleted().catch((e) => log(e.message));
+  el("prevPageBtn").onclick = () =>
+    listPaged(Math.max(0, state.page - 1), state.currentStatus || "all").catch((e) => log(e.message));
+  el("nextPageBtn").onclick = () =>
+    listPaged(state.page + 1, state.currentStatus || "all").catch((e) => log(e.message));
 }
 
 init();

@@ -87,6 +87,17 @@ body {
   gap: 12px;
 }
 
+.pager {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.page-info {
+  color: var(--muted);
+}
+
 .label {
   display: block;
   font-size: 12px;

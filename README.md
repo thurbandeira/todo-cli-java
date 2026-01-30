@@ -180,6 +180,7 @@ http://localhost:8080
 ```
 
 3) Use o formulario para registrar/login e testar as rotas.
+   A lista usa paginacao e suporta filtros por status.
 
 ## Roadmap (curto)
 - CLI mais rica (flags)
