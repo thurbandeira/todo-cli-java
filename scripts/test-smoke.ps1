@@ -4,6 +4,8 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+$BaseUrl = $BaseUrl.TrimEnd("/")
+
 function Invoke-Api {
     param(
         [string]$Method,
@@ -11,10 +13,21 @@ function Invoke-Api {
         [hashtable]$Headers = @{},
         [object]$Body = $null
     )
-    if ($null -ne $Body) {
-        return Invoke-RestMethod -Method $Method -Uri $Url -Headers $Headers -Body ($Body | ConvertTo-Json) -ContentType "application/json"
+    Write-Host "-> $Method $Url"
+    try {
+        if ($null -ne $Body) {
+            return Invoke-RestMethod -Method $Method -Uri $Url -Headers $Headers -Body ($Body | ConvertTo-Json) -ContentType "application/json"
+        }
+        return Invoke-RestMethod -Method $Method -Uri $Url -Headers $Headers
+    } catch {
+        $response = $_.Exception.Response
+        if ($null -ne $response) {
+            $reader = New-Object System.IO.StreamReader($response.GetResponseStream())
+            $bodyText = $reader.ReadToEnd()
+            throw "Erro em $Method $Url - Status $($response.StatusCode) - Body: $bodyText"
+        }
+        throw
     }
-    return Invoke-RestMethod -Method $Method -Uri $Url -Headers $Headers
 }
 
 function Assert-True {
